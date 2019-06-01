@@ -62,6 +62,45 @@ class UserServiceTest extends TestCase
     }
 
     /**
+     * Test a user can be created if not already in db.
+     *
+     * @dataProvider createUserDataProvider
+     * @return void
+     */
+    public function testFirstOrCreateUser($data)
+    {
+        if (Arr::has($data, 'name')) {
+            $this->assertDatabaseMissing('users', [
+                'name' => $data['name'],
+                'email' => $data['email']
+            ]);
+        } else {
+            $this->assertDatabaseMissing('users', [
+                'email' => $data['email']
+            ]);
+        }
+
+        $createdUser = $this->userService->firstOrCreate(Arr::except($data, 'password'), $data);
+
+        if (Arr::has($data, 'name')) {
+            $this->assertDatabaseHas('users', [
+                'name' => $data['name'],
+                'email' => $data['email']
+            ]);
+        } else {
+            $this->assertDatabaseHas('users', [
+                'name' => explode('@', $data['email'])[0],
+                'email' => $data['email']
+            ]);
+        }
+
+        $this->assertSame(
+            $createdUser->id,
+            $this->userService->firstOrCreate(Arr::except($data, 'password'), $data)->id
+        );
+    }
+
+    /**
      * Provide data for creating Users with name given.
      *
      * @return array
