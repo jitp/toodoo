@@ -2,6 +2,7 @@
 
 namespace App\Models;
 
+use App\Enums\ParticipantRolesEnum;
 use App\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
 
@@ -22,13 +23,31 @@ class TodoList extends Model
 
     protected $fillable = [
         'name',
-        'user_id'
     ];
 
     protected $casts = [
         'name' => 'string',
-        'user_id' => 'integer'
     ];
+
+    protected $table = 'todo_lists';
+
+    /**
+     * =================================================================================================================
+     *
+     * ACCESSORS & MUTATORS
+     *
+     * =================================================================================================================
+     */
+
+    /**
+     * Get creator of this TodoList.
+     *
+     * @return User|null
+     */
+    public function getCreatorAttribute()
+    {
+        return $this->creators()->first();
+    }
 
     /**
      * =================================================================================================================
@@ -39,16 +58,36 @@ class TodoList extends Model
      */
 
     /**
-     * Relation to User as Creator.
+     * Relation to Users as Creators.
      *
-     * @return \Illuminate\Database\Eloquent\Relations\BelongsTo
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
      */
-    public function creator()
+    public function creators()
     {
-        return $this->belongsTo(
+        return $this->participants()
+            ->wherePivot('role', '=', ParticipantRolesEnum::CREATOR)
+            ;
+    }
+
+    /**
+     * Relation to Users as Participants.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\BelongsToMany
+     */
+    public function participants()
+    {
+        return $this->belongsToMany(
             User::class,
-            'user_id',
-            'id'
-        );
+            'participants',
+            'todo_list_id',
+            'user_id'
+        )
+            ->withPivot([
+                'hash',
+                'role'
+            ])
+            ->as('participant')
+            ->withTimestamps()
+            ;
     }
 }
