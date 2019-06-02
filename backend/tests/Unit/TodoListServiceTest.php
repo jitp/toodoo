@@ -2,10 +2,13 @@
 
 namespace Tests\Unit;
 
+use App\Enums\ParticipantRolesEnum;
 use App\Mail\TodoListInvitation;
+use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
 use App\Services\TodoList\TodoListService;
 use App\User;
+use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
@@ -178,6 +181,96 @@ class TodoListServiceTest extends TestCase
                     $mail->inviting->id === $inviting->id;
             });
         }
+    }
+
+    /**
+     * Test a todolist is deleted
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testTodoListIsDeleted()
+    {
+        $todoList = factory(TodoList::class)->create();
+
+        //Assert todolist is deleted given as an instance parameter
+        $result = $this->todoListService->delete($todoList);
+
+        $this->assertTrue($result);
+        $this->assertDatabaseMissing('todo_lists', [
+            'id' => $todoList->id,
+            'deleted_at' => null
+        ]);
+
+        $todoList = factory(TodoList::class)->create();
+
+        //Assert todolist is deleted given as an integer
+        $result = $this->todoListService->delete($todoList->id);
+
+        $this->assertTrue($result);
+        $this->assertDatabaseMissing('todo_lists', [
+            'id' => $todoList->id,
+            'deleted_at' => null
+        ]);
+    }
+
+    /**
+     * Test an exception is thrown if no valid todolist is given when deleting.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testTodoListIsNotDeleted()
+    {
+        $this->expectException(ModelNotFoundException::class);
+
+        $this->todoListService->delete(-1);
+    }
+
+    /**
+     * Test an email is sent to participants when a todolist is removed.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testEventNotificationOnTodoListRemoval()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::PARTICIPANT);
+
+        Mail::fake();
+
+        $this->todoListService->delete($todoList);
+
+        // Assert mail was sent 0 times.
+        Mail::assertSent(TodoListRemovalNotification::class, 1);
+
+        Mail::assertSent(TodoListRemovalNotification::class, function ($mail) use ($user, $todoList) {
+            return $mail->hasTo($user->email) &&
+                $mail->todoList->id === $todoList->id;
+        });
+    }
+
+    /**
+     * Test participant removing the todolist is not notified by email.
+     *
+     * @return void
+     */
+    public function testNotNotifyingTodoListDeleterOnTodoListRemoval()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::PARTICIPANT);
+
+        Mail::fake();
+
+        $this->todoListService->notifyTodoListRemoval($todoList, $user);
+
+        // Assert mail was sent 0 times.
+        Mail::assertSent(TodoListRemovalNotification::class, 0);
     }
 
     /**

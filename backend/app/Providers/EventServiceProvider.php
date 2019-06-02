@@ -2,6 +2,7 @@
 
 namespace App\Providers;
 
+use App\Models\TodoList;
 use Illuminate\Support\Facades\Event;
 use Illuminate\Auth\Events\Registered;
 use Illuminate\Auth\Listeners\SendEmailVerificationNotification;
@@ -17,6 +18,9 @@ class EventServiceProvider extends ServiceProvider
     protected $listen = [
         Registered::class => [
             SendEmailVerificationNotification::class,
+        ],
+        'eloquent.deleted: ' . TodoList::class => [
+            'App\\Listeners\\TodoListRemovalNotifyingListener@handle'
         ],
     ];
 
