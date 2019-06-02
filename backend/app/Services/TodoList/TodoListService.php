@@ -2,6 +2,8 @@
 
 namespace App\Services\TodoList;
 
+use App\Enums\ParticipantRolesEnum;
+use App\Exceptions\TodoListException;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
@@ -34,13 +36,52 @@ class TodoListService extends Service
     }
 
     /**
-     * Create a TodoList
+     * Create a todolist.
      *
-     * @param array $data
-     * @return TodoList
+     * @param array $data can have index 'creator' with a list of emails or array of valid user attributes and another
+     *                    index 'participants' with a list of emails or arrays of valid user attributes.
+     * @return \Illuminate\Database\Eloquent\Model|null
+     * @throws Exception
      */
     public function create($data)
     {
+        $createdTodoList = null;
+        $creator = Arr::pull($data, 'creator', []);
+        $participants = Arr::pull($data, 'participants', []);
+
+        DB::beginTransaction();
+
+        try {
+
+            $createdTodoList = $this->todoListQueryBuilder()->create($data);
+
+            if ($creator) {
+                if (is_array($creator) && count($creator) > 1) {
+                    throw new TodoListException(422, 'Only one creator is admitted');
+                }
+
+                $this->addParticipantsToList($createdTodoList, $creator, ParticipantRolesEnum::CREATOR);
+            }
+
+            if ($participants) {
+                $this->addParticipantsToList($createdTodoList, $participants, ParticipantRolesEnum::PARTICIPANT);
+            }
+
+            DB::commit();
+        } catch (Exception $e) {
+            DB::rollBack();
+
+            throw $e;
+        }
+
+        //Notify users of the creation
+        if ($creator = $createdTodoList->creator) {
+            $participants = $createdTodoList->participants->all();
+
+            $this->mailInvitationToCollaborate($createdTodoList, $participants, $creator);
+        }
+
+        return $createdTodoList;
     }
 
     /**
@@ -137,10 +178,11 @@ class TodoListService extends Service
      *
      * @param TodoList           $todoList
      * @param array|integer|User $participants array or single value of: user ids, user attributes and values or emails
+     * @param string             $role
      * @return mixed
      * @throws Exception
      */
-    protected function addParticipantsToList($todoList, $participants)
+    protected function addParticipantsToList($todoList, $participants, $role = ParticipantRolesEnum::PARTICIPANT)
     {
         $participants = collect(Arr::wrap($participants))->transform(function($item) {
             //Possible user id
@@ -164,12 +206,6 @@ class TodoListService extends Service
             return $item;
         });
 
-        //Getting todolist existing participants
-        $todoListParticipantsEmails = $todoList->participants->pluck('email');
-
-        //Exclude users already participating in todolist
-        $participants->whereNotIn('email', $todoListParticipantsEmails);
-
         $participantInstances = [];
 
         DB::beginTransaction();
@@ -182,10 +218,20 @@ class TodoListService extends Service
                 $participantInstances[] = $participantInstance;
             }
 
-            $todoList->addParticipants($participantInstances);
+            $participantInstances = collect($participantInstances);
 
-            //Refresh list participants so new ones are loaded
-            $todoList->load('participants');
+            //Avoid duplicates
+            $participantInstances = $participantInstances->unique('email');
+
+            //Exclude users already participating in todolist
+            $participantInstances = $participantInstances->whereNotIn('id', $todoList->participants->pluck('id')->all());
+
+            if ($participantInstances->isNotEmpty()) {
+                $todoList->addParticipants($participantInstances->all(), $role);
+
+                //Refresh list participants so new ones are loaded
+                $todoList->load('participants');
+            }
 
             DB::commit();
 
@@ -196,7 +242,7 @@ class TodoListService extends Service
         }
 
         //Return new added participants
-        return $todoList->participants->whereNotIn('email', $todoListParticipantsEmails)->all();
+        return $todoList->participants->whereIn('email', $participantInstances->pluck('email'))->all();
     }
 
     /**

@@ -3,6 +3,7 @@
 namespace Tests\Unit;
 
 use App\Enums\ParticipantRolesEnum;
+use App\Exceptions\TodoListException;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
@@ -45,25 +46,151 @@ class TodoListServiceTest extends TestCase
     }
 
     /**
-     * A basic unit test example.
+     * Test todolist creation.
      *
      * @dataProvider todolistCreateProvider
      * @return void
+     * @throws \Exception
      */
-    public function testCreateTodoList($data)
+    public function testCreatingATodoList($data)
     {
-        $this->assertTrue(true);
-//        $this->todoListService->create($data);
-//
-//        $this->assertDatabaseHas('todo_lists', [
-//            'name' => $data['name'],
-//            'deleted_at' => null
-//        ]);
-//
-//        $this->assertDatabaseHas('users', [
-//            'email' => array_merge($data['creator'], $data['participants']),
-//            'deleted_at' => null
-//        ]);
+        $this->assertDatabaseMissing('todo_lists', [
+            'name' => $data['name']
+        ]);
+
+        if (isset($data['creator'])) {
+            if (is_array($data['creator'])) {
+                $this->assertDatabaseMissing('users', $data['creator']);
+            } else {
+                $this->assertDatabaseMissing('users', [
+                    'email' => $data['creator']
+                ]);
+            }
+        }
+
+        if (isset($data['participants'])) {
+            if (isset($data['participants'][0])) {
+                if (is_array($data['participants'][0])) {
+                    foreach ($data['participants'] as $participantData) {
+                        $this->assertDatabaseMissing('users', $participantData);
+                    }
+                } else {
+                    foreach ($data['participants'] as $participantData) {
+                        $this->assertDatabaseMissing('users', [
+                            'email' => $participantData
+                        ]);
+                    }
+                }
+            }
+        }
+
+        $todoList = $this->todoListService->create($data);
+
+        $this->assertInstanceOf(TodoList::class, $todoList);
+
+        $this->assertDatabaseHas('todo_lists', [
+            'name' => $data['name']
+        ]);
+
+        if (isset($data['creator'])) {
+            if (is_array($data['creator'])) {
+                $this->assertDatabaseHas('users', $data['creator']);
+                $this->assertSame($data['creator']['email'], $todoList->creator->email);
+            } else {
+                $this->assertDatabaseHas('users', [
+                    'email' => $data['creator']
+                ]);
+                $this->assertSame($data['creator'], $todoList->creator->email);
+            }
+        }
+
+        if (isset($data['participants'])) {
+            if (isset($data['participants'][0])) {
+                if (is_array($data['participants'][0])) {
+                    foreach ($data['participants'] as $participantData) {
+                        $this->assertDatabaseHas('users', $participantData);
+                        $this->assertNotNull($todoList->participants->firstWhere('email', $participantData['email']));
+                    }
+                } else {
+                    foreach ($data['participants'] as $participantData) {
+                        $this->assertDatabaseHas('users', [
+                            'email' => $participantData
+                        ]);
+                        $this->assertNotNull($todoList->participants->firstWhere('email', $participantData));
+                    }
+                }
+            }
+        }
+    }
+
+    /**
+     * Test only one creator is allowed when creating a todolist.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testOneCreatorOnly()
+    {
+        $this->expectException(TodoListException::class);
+
+        $this->todoListService->create([
+            'name' => $this->faker->sentence,
+            'creator' => [
+                $this->faker->safeEmail,
+                $this->faker->safeEmail,
+            ]
+        ]);
+    }
+
+    /**
+     * Test repeated participants are only inserted once.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testNotInsertingDuplicatedParticipants()
+    {
+        $participantEmail = $this->faker->safeEmail;
+
+        $todoList = $this->todoListService->create([
+            'name' => $this->faker->sentence,
+            'creator' => [
+                $this->faker->safeEmail,
+            ],
+            'participants' => [
+                $participantEmail,
+                $participantEmail,
+                $participantEmail,
+                $participantEmail
+            ]
+        ]);
+
+        $this->assertCount(2, $todoList->participants);
+    }
+
+    /**
+     * Test notification emails are sent to participants on todolist creation.
+     *
+     * @return void
+     * @throws \Exception
+     */
+    public function testEmailNotificationOnTodoListCreation()
+    {
+        Mail::fake();
+
+        $this->todoListService->create([
+            'name' => $this->faker->sentence,
+            'creator' => [
+                $this->faker->safeEmail,
+            ],
+            'participants' => [
+                $this->faker->safeEmail,
+                $this->faker->safeEmail,
+            ]
+        ]);
+
+        // Assert mail was sent 1 times.
+        Mail::assertSent(TodoListInvitation::class, 3);
     }
 
     /**
@@ -283,11 +410,53 @@ class TodoListServiceTest extends TestCase
         $faker = \Faker\Factory::create(\Faker\Factory::DEFAULT_LOCALE);
 
         return [
-            [[
-                'name' => $faker->sentence,
-                'creator' => $faker->safeEmail,
-                'participants' => $this->emails()
-            ]]
+            [
+                [
+                    'name' => $faker->sentence,
+                ]
+            ],
+            [
+                [
+                    'name' => $faker->sentence,
+                    'creator' => $faker->safeEmail,
+                ]
+            ],
+            [
+                [
+                    'name' => $faker->sentence,
+                    'creator' => [
+                        'email' => $faker->safeEmail
+                    ],
+                ]
+            ],
+            [
+                [
+                    'name' => $faker->sentence,
+                    'creator' => $faker->safeEmail,
+                    'participants' => $this->emails()
+                ]
+            ],
+            [
+                [
+                    'name' => $faker->sentence,
+                    'creator' => $faker->safeEmail,
+                    'participants' => [
+                        [
+                            'email' => $faker->safeEmail
+                        ],
+                        [
+                            'email' => $faker->safeEmail
+                        ]
+                    ]
+                ]
+            ],
+            [
+                [
+                    'name' => $faker->sentence,
+                    'creator' => $faker->safeEmail,
+                    'participants' => []
+                ]
+            ]
         ];
     }
 
