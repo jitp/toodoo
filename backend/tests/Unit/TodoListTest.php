@@ -54,7 +54,7 @@ class TodoListTest extends TestCase
 
         $users = factory(User::class, 5)->create();
 
-        $todolist->addParticipants($users->toArray());
+        $todolist->addParticipants($users->all());
 
         foreach ($users as $user) {
             $this->assertDatabaseHas('participants', [
@@ -75,5 +75,37 @@ class TodoListTest extends TestCase
         $todolist = factory(TodoList::class)->create();
 
         $this->assertNull($todolist->creator);
+    }
+
+    /**
+     * Test a given user is the creator of the todolist.
+     *
+     * @return void
+     */
+    public function testUserIsTodoListCreator()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::CREATOR);
+
+        $this->assertTrue($todoList->isCreator($user));
+        $this->assertTrue($todoList->isCreator($user->id));
+    }
+
+    /**
+     * Test a given user is not the creator of the todolist.
+     *
+     * @return void
+     */
+    public function testUserIsNotTodoListCreator()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::PARTICIPANT);
+
+        $this->assertFalse($todoList->isCreator($user));
+        $this->assertFalse($todoList->isCreator($user->id));
     }
 }

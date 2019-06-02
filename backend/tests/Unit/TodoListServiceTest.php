@@ -2,12 +2,14 @@
 
 namespace Tests\Unit;
 
+use App\Mail\TodoListInvitation;
 use App\Models\TodoList;
 use App\Services\TodoList\TodoListService;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
 use Illuminate\Foundation\Testing\RefreshDatabase;
@@ -70,8 +72,9 @@ class TodoListServiceTest extends TestCase
     public function testInvitingUsersToTodoList($data)
     {
         $todolist = factory(TodoList::class)->create();
+        $inviting = factory(User::class)->create();
 
-        $this->todoListService->invite($todolist, $data);
+        $this->todoListService->invite($todolist, $data, $inviting);
 
         $email = data_get($data, 'email', $data);
 
@@ -93,16 +96,20 @@ class TodoListServiceTest extends TestCase
     public function testInvitingUsersInstancesToTodoList()
     {
         $todolist = factory(TodoList::class)->create();
+        $inviting = factory(User::class)->create();
         $users = factory(User::class, 5)->create();
 
-        $this->todoListService->invite($todolist, $users[0]);
+        $participants = $this->todoListService->invite($todolist, $users[0], $inviting);
 
         $this->assertDatabaseHas('participants', [
             'user_id' => $users[0]->id,
             'todo_list_id' => $todolist->id
         ]);
 
-        $this->todoListService->invite($todolist, array_slice($users->all(), 1));
+        $this->assertCount(1, $participants);
+        $this->assertSame($users[0]->id, $participants[0]->id);
+
+        $participants = $this->todoListService->invite($todolist, array_slice($users->all(), 1), $inviting);
 
         foreach (array_slice($users->all(), 1) as $user) {
             $this->assertDatabaseHas('participants', [
@@ -110,6 +117,8 @@ class TodoListServiceTest extends TestCase
                 'todo_list_id' => $todolist->id
             ]);
         }
+
+        $this->assertCount(4, $participants);
     }
 
     /**
@@ -121,13 +130,54 @@ class TodoListServiceTest extends TestCase
     public function testNotInvitingAnInvitedUser()
     {
         $todolist = factory(TodoList::class)->create();
+        $inviting = factory(User::class)->create();
         $user = factory(User::class)->create();
 
-        $this->todoListService->invite($todolist, $user);
+        $this->todoListService->invite($todolist, $user, $inviting);
 
-        $result = $this->todoListService->invite($todolist, $user);
+        $result = $this->todoListService->invite($todolist, $user, $inviting);
 
-        $this->assertEmpty($result['attached']);
+        $this->assertEmpty($result);
+    }
+
+    /**
+     * Test invitation email is sent when a user is invited to collaborate on a todolist
+     *
+     * @throws \Exception
+     */
+    public function testSendingInvitationEmailOnInviting()
+    {
+        Mail::fake();
+
+        $todolist = factory(TodoList::class)->create();
+        $inviting = factory(User::class)->create();
+        $users = factory(User::class, 5)->create();
+
+        //Inviting just one user
+        $this->todoListService->invite($todolist, $users[0], $inviting);
+
+        Mail::assertSent(TodoListInvitation::class, function ($mail) use ($users, $todolist, $inviting) {
+            return $mail->hasTo($users[0]->email) &&
+                $mail->todoList->id === $todolist->id &&
+                $mail->inviting->id === $inviting->id;
+        });
+
+        // Assert mail was sent 1 times.
+        Mail::assertSent(TodoListInvitation::class, 1);
+
+        //Inviting all users
+        $participants = $this->todoListService->invite($todolist, $users->all(), $inviting);
+
+        $this->assertCount(4, $participants);
+
+        // Assert a message was sent to the given users...
+        foreach ($participants as $user) {
+            Mail::assertSent(TodoListInvitation::class, function ($mail) use ($user, $todolist, $inviting) {
+                return $mail->hasTo($user->email) &&
+                    $mail->todoList->id === $todolist->id &&
+                    $mail->inviting->id === $inviting->id;
+            });
+        }
     }
 
     /**

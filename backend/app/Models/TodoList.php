@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ParticipantRolesEnum;
 use App\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Arr;
 use Illuminate\Support\Facades\Hash;
 
 /**
@@ -41,18 +42,31 @@ class TodoList extends Model
      */
     public function addParticipants($participants, $role = ParticipantRolesEnum::PARTICIPANT)
     {
-        $participants = collect($participants);
+        $participants = collect(Arr::wrap($participants));
 
         $prepareData = [];
 
         foreach ($participants as $participant) {
             $prepareData[$participant['id']] = [
-                'hash' => Hash::make($this->name . time()),
+                'hash' => Hash::make($this->name . $participant->email . time()),
                 'role' => $role
             ];
         }
 
         return $this->participants()->syncWithoutDetaching($prepareData);
+    }
+
+    /**
+     * Determine if given participant is the creator of the todolist.
+     *
+     * @param int|User $participant
+     * @return bool
+     */
+    public function isCreator($participant)
+    {
+        $id = data_get($participant, 'id', $participant);
+
+        return data_get($this, 'creator.id') == $id;
     }
 
     /**
