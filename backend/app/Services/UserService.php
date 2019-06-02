@@ -4,6 +4,7 @@ namespace App\Services;
 
 use App\User;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Class UserService
@@ -76,6 +77,11 @@ class UserService extends Service
             $name = $this->getDefaultNameFromEmail(Arr::get($data, 'email', 'john@example.org'));
 
             Arr::set($data, 'name', $name);
+        }
+
+        //Just a default password
+        if (!Arr::has($data, 'password')) {
+            Arr::set($data, 'password', Hash::make('defaultpassword'));
         }
 
         return $data;

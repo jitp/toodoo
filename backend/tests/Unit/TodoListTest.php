@@ -45,6 +45,27 @@ class TodoListTest extends TestCase
     }
 
     /**
+     * Test users are related to todolist through participants relation.
+     *
+     */
+    public function testAddParticipants()
+    {
+        $todolist = factory(TodoList::class)->create();
+
+        $users = factory(User::class, 5)->create();
+
+        $todolist->addParticipants($users->toArray());
+
+        foreach ($users as $user) {
+            $this->assertDatabaseHas('participants', [
+                'user_id' => $user->id,
+                'todo_list_id' => $todolist->id,
+                'role' => ParticipantRolesEnum::PARTICIPANT,
+            ]);
+        }
+    }
+
+    /**
      * Test todolist returns null when no creator is defined
      *
      * return @void

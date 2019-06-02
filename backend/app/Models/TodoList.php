@@ -5,6 +5,7 @@ namespace App\Models;
 use App\Enums\ParticipantRolesEnum;
 use App\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Facades\Hash;
 
 /**
  * Class TodoList
@@ -30,6 +31,29 @@ class TodoList extends Model
     ];
 
     protected $table = 'todo_lists';
+
+    /**
+     * Add participants to the todolist.
+     *
+     * @param array|User $participants array of Users or a single User instance
+     * @param string     $role
+     * @return array
+     */
+    public function addParticipants($participants, $role = ParticipantRolesEnum::PARTICIPANT)
+    {
+        $participants = collect($participants);
+
+        $prepareData = [];
+
+        foreach ($participants as $participant) {
+            $prepareData[$participant['id']] = [
+                'hash' => Hash::make($this->name . time()),
+                'role' => $role
+            ];
+        }
+
+        return $this->participants()->syncWithoutDetaching($prepareData);
+    }
 
     /**
      * =================================================================================================================
