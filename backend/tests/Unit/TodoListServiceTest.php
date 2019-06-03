@@ -754,6 +754,32 @@ class TodoListServiceTest extends TestCase
     }
 
     /**
+     * Test changing deadline date to TodoList item.
+     *
+     * @return void
+     */
+    public function testChangingDeadlineToTodoListItem()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $item = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->todoListService->changeTodoListItemDeadline($item, Carbon::today());
+
+        $this->assertEquals(Carbon::today(), $item->deadline);
+
+        $this->todoListService->changeTodoListItemDeadline($item, null);
+
+        $this->assertEmpty($item->deadline);
+    }
+
+    /**
      * Provide data for creating a todolist.
      *
      * @return array

@@ -219,6 +219,19 @@ class TodoListService extends Service
     }
 
     /**
+     * Change deadline to TodoList item.
+     *
+     * @param TodoListItem       $todoListItem
+     * @param string|Carbon|null $deadline
+     */
+    public function changeTodoListItemDeadline($todoListItem, $deadline)
+    {
+        $todoListItem->deadline = $deadline;
+
+        $todoListItem->save();
+    }
+
+    /**
      * Send invitation email to collaborate on a todolist.
      *
      * @param TodoList   $todoList
