@@ -546,6 +546,214 @@ class TodoListServiceTest extends TestCase
     }
 
     /**
+     * Test ordering TodoListItems
+     *
+     * @return void
+     */
+    public function testOrderingTodoListItems()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $persistedOrder = TodoListItem::where('todo_list_id', $todoList->id)->ordered()->get([
+            'id',
+            'order'
+        ])->toArray();
+
+        $this->assertEquals([
+            [
+                'id' => 1,
+                'order' => 1
+            ],
+            [
+                'id' => 2,
+                'order' => 2
+            ],
+            [
+                'id' => 3,
+                'order' => 3
+            ],
+            [
+                'id' => 4,
+                'order' => 4
+            ],
+            [
+                'id' => 5,
+                'order' => 5
+            ]
+        ], $persistedOrder);
+
+        $this->todoListService->changeTodoListItemsOrder($todoList, [
+            5, 2, 3, 1, 4
+        ]);
+
+        $newPersistedOrder = TodoListItem::where('todo_list_id', $todoList->id)->ordered()->get([
+            'id',
+            'order'
+        ])->toArray();
+
+        $this->assertEquals([
+            [
+                'id' => 5,
+                'order' => 1
+            ],
+            [
+                'id' => 2,
+                'order' => 2
+            ],
+            [
+                'id' => 3,
+                'order' => 3
+            ],
+            [
+                'id' => 1,
+                'order' => 4
+            ],
+            [
+                'id' => 4,
+                'order' => 5
+            ]
+        ], $newPersistedOrder);
+    }
+
+    public function testOrderingDoesNotAffectJustSelectedTodoList()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $newTodoList = factory(TodoList::class)->create();
+
+        $newTodoList->addParticipants($user);
+
+        factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $newTodoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $persistedOrder = TodoListItem::where('todo_list_id', $todoList->id)->ordered()->get([
+            'id',
+            'order'
+        ])->toArray();
+
+        $this->assertEquals([
+            [
+                'id' => 1,
+                'order' => 1
+            ],
+            [
+                'id' => 2,
+                'order' => 2
+            ],
+            [
+                'id' => 3,
+                'order' => 3
+            ],
+            [
+                'id' => 4,
+                'order' => 4
+            ],
+            [
+                'id' => 5,
+                'order' => 5
+            ]
+        ], $persistedOrder);
+
+        //Ordering other list items (this ones should start at id 6)
+        $this->todoListService->changeTodoListItemsOrder($newTodoList, [
+            7, 8, 6, 9, 10
+        ]);
+
+        //First list stays the same
+        $this->assertEquals([
+            [
+                'id' => 1,
+                'order' => 1
+            ],
+            [
+                'id' => 2,
+                'order' => 2
+            ],
+            [
+                'id' => 3,
+                'order' => 3
+            ],
+            [
+                'id' => 4,
+                'order' => 4
+            ],
+            [
+                'id' => 5,
+                'order' => 5
+            ]
+        ], $persistedOrder);
+
+        //Second list should have changed
+        $newPersistedOrder = TodoListItem::where('todo_list_id', $newTodoList->id)->ordered()->get([
+            'id',
+            'order'
+        ])->toArray();
+
+        $this->assertEquals([
+            [
+                'id' => 7,
+                'order' => 1
+            ],
+            [
+                'id' => 8,
+                'order' => 2
+            ],
+            [
+                'id' => 6,
+                'order' => 3
+            ],
+            [
+                'id' => 9,
+                'order' => 4
+            ],
+            [
+                'id' => 10,
+                'order' => 5
+            ]
+        ], $newPersistedOrder);
+    }
+
+    /**
+     * Test an exception is thrown when wrong list's items are given to be ordered.
+     *
+     * @return void
+     */
+    public function testExceptionIsThrownWhenWrongItemsListGivenToBeOrdered()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->expectException(TodoListException::class);
+
+        $this->todoListService->changeTodoListItemsOrder($todoList, [3, 5]);
+    }
+
+    /**
      * Provide data for creating a todolist.
      *
      * @return array

@@ -204,6 +204,21 @@ class TodoListService extends Service
     }
 
     /**
+     * Change TodoList's items order.
+     *
+     * @param TodoList  $todoList
+     * @param array     $items TodoListItems
+     */
+    public function changeTodoListItemsOrder($todoList, $items)
+    {
+        if (!$todoList->isWholeSetOfItemIds($items)) {
+            throw new TodoListException(422, 'Wrong list\'s items.');
+        }
+
+        TodoListItem::setNewOrder($items);
+    }
+
+    /**
      * Send invitation email to collaborate on a todolist.
      *
      * @param TodoList   $todoList

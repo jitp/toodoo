@@ -95,6 +95,20 @@ class TodoList extends Model
     }
 
     /**
+     * Determine if given set of ids is the whole TodoList items ids.
+     *
+     * @param array $items ids
+     * @return bool
+     */
+    public function isWholeSetOfItemIds($items)
+    {
+        $givenItemsCount = $this->items->whereIn('id', $items)->count();
+        $realItemsCount = $this->items->count();
+
+        return ($givenItemsCount === $realItemsCount) && (count($items) === $realItemsCount);
+    }
+
+    /**
      * =================================================================================================================
      *
      * ACCESSORS & MUTATORS

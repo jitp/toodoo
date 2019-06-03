@@ -212,4 +212,50 @@ class TodoListTest extends TestCase
 
         $this->assertFalse($todoList->isParticipant($user));
     }
+
+    /**
+     * Test the given set of ids is the right TodoList complete items' ids
+     *
+     * @return TodoList
+     */
+    public function testIsWholeSetOfItemIds()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $items = factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->assertTrue($todoList->isWholeSetOfItemIds($items->pluck('id')->all()));
+
+        return $todoList;
+    }
+
+    /**
+     * Test more ids than real ones in a TodoList are given to isWholeSetOfItemIds.
+     *
+     * @depends testIsWholeSetOfItemIds
+     * @param TodoList $todoList
+     * @return void
+     */
+    public function testMoreItemsThanRealsGivenToIsWholeSetOfItemIds($todoList)
+    {
+        $this->assertFalse($todoList->isWholeSetOfItemIds([1,2,3,4,5,6]));
+    }
+
+    /**
+     * Test less ids than real ones in a TodoList are given to isWholeSetOfItemIds.
+     *
+     * @depends testIsWholeSetOfItemIds
+     * @param TodoList $todoList
+     * @return void
+     */
+    public function testLessItemsThanRealsGivenToIsWholeSetOfItemIds($todoList)
+    {
+        $this->assertFalse($todoList->isWholeSetOfItemIds([1,2,3,4]));
+    }
 }
