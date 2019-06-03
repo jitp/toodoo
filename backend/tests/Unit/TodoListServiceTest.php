@@ -3,16 +3,19 @@
 namespace Tests\Unit;
 
 use App\Enums\ParticipantRolesEnum;
+use App\Enums\TodoListItemStatusEnum;
 use App\Exceptions\TodoListException;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
+use App\Models\TodoListItem;
 use App\Services\TodoList\TodoListService;
 use App\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -398,6 +401,68 @@ class TodoListServiceTest extends TestCase
 
         // Assert mail was sent 0 times.
         Mail::assertSent(TodoListRemovalNotification::class, 0);
+    }
+
+    /**
+     * Test a non participant User can add items to a todolist.
+     *
+     * @return void
+     */
+    public function testNonParticipantUserCanAddItemToList()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $this->expectException(TodoListException::class);
+
+        $this->todoListService->addItemToList($todoList, [
+            'name' => $this->faker->sentence
+        ], $user);
+    }
+
+    /**
+     * Test a participant can add an item to the todolist.
+     *
+     * @return mixed
+     */
+    public function testParticipantCanAddItemToList()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $this->assertDatabaseMissing('todo_list_items', [
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id
+        ]);
+
+        $item = $this->todoListService->addItemToList($todoList, [
+            'name' => $this->faker->sentence,
+            'status' => TodoListItemStatusEnum::DONE,
+            'deadline' => Carbon::yesterday()
+        ], $user);
+
+        $this->assertDatabaseHas('todo_list_items', [
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id
+        ]);
+
+        $this->assertInstanceOf(TodoListItem::class, $item->first());
+
+        return $item;
+    }
+
+    /**
+     * Test defaults are not changed when adding an item to the todolist.
+     *
+     * @depends testParticipantCanAddItemToList
+     * @param $item
+     */
+    public function testDefaultsToAddItemToListArentChanged($item)
+    {
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $item->first()->status);
+        $this->assertEquals(Carbon::today()->addMonth(), $item->first()->deadline);
     }
 
     /**

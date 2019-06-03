@@ -3,7 +3,9 @@
 namespace Tests\Unit;
 
 use App\Enums\ParticipantRolesEnum;
+use App\Enums\TodoListItemStatusEnum;
 use App\Models\TodoList;
+use App\Models\TodoListItem;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\WithoutMiddleware;
@@ -107,5 +109,107 @@ class TodoListTest extends TestCase
 
         $this->assertFalse($todoList->isCreator($user));
         $this->assertFalse($todoList->isCreator($user->id));
+    }
+
+    /**
+     * Test single item addition to TodoList
+     *
+     * @return void
+     */
+    public function testAddSingleItemToList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $this->assertDatabaseMissing('todo_list_items', [
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id
+        ]);
+
+        $todoListItem = $todoList->addItems([
+            [
+                'name' => $this->faker->sentence,
+                'user_id' => $user->id,
+                'status' => TodoListItemStatusEnum::PENDING,
+                'deadline' => $this->faker->dateTimeBetween('now', '+1 month')
+            ]
+        ]);
+
+        $this->assertDatabaseHas('todo_list_items', [
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id
+        ]);
+
+        $this->assertInstanceOf(TodoListItem::class, $todoListItem->first());
+        $this->assertEquals($user->id, $todoListItem->first()->user_id);
+        $this->assertEquals($todoList->id, $todoListItem->first()->todo_list_id);
+    }
+
+    /**
+     * Test adding multiple items to TodoList
+     *
+     * @return void
+     */
+    public function testAddMultipleItemsToList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $items = $todoListItem = $todoList->addItems([
+            [
+                'name' => $this->faker->sentence,
+                'user_id' => $user->id,
+                'status' => TodoListItemStatusEnum::PENDING,
+                'deadline' => $this->faker->dateTimeBetween('now', '+1 month')
+            ],
+            [
+                'name' => $this->faker->sentence,
+                'user_id' => $user->id,
+                'status' => TodoListItemStatusEnum::PENDING,
+                'deadline' => $this->faker->dateTimeBetween('now', '+1 month')
+            ],
+            [
+                'name' => $this->faker->sentence,
+                'user_id' => $user->id,
+                'status' => TodoListItemStatusEnum::PENDING,
+                'deadline' => $this->faker->dateTimeBetween('now', '+1 month')
+            ],
+            [
+                'name' => $this->faker->sentence,
+                'user_id' => $user->id,
+                'status' => TodoListItemStatusEnum::PENDING,
+                'deadline' => $this->faker->dateTimeBetween('now', '+1 month')
+            ],
+        ]);
+
+        $this->assertCount(4, $items);
+    }
+
+    /**
+     * Test a User is participant of the list.
+     *
+     * @return void
+     */
+    public function testUserIsParticipant()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $this->assertTrue($todoList->isParticipant($user));
+    }
+
+    /**
+     * Test a User is not participant of the list.
+     *
+     * @return void
+     */
+    public function testUserIsNotAParticipant()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $this->assertFalse($todoList->isParticipant($user));
     }
 }

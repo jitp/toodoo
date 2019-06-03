@@ -57,6 +57,19 @@ class TodoList extends Model
     }
 
     /**
+     * Add new Items to the list.
+     *
+     * @param array $items a single array or an array of arrays of valid TodoListItems attributes => values
+     * @return \Illuminate\Database\Eloquent\Collection
+     */
+    public function addItems($items)
+    {
+        $items = Arr::wrap($items);
+
+        return $this->items()->createMany($items);
+    }
+
+    /**
      * Determine if given participant is the creator of the todolist.
      *
      * @param int|User $participant
@@ -67,6 +80,18 @@ class TodoList extends Model
         $id = data_get($participant, 'id', $participant);
 
         return data_get($this, 'creator.id') == $id;
+    }
+
+    /**
+     * Determine if given participant belongs to this todolist.
+     *
+     * @param User $participant
+     * @return bool
+     */
+    public function isParticipant($participant)
+    {
+        return $this->participants
+                ->firstWhere('id', data_get($participant, 'id')) != null;
     }
 
     /**
@@ -127,5 +152,20 @@ class TodoList extends Model
             ->as('participant')
             ->withTimestamps()
             ;
+    }
+
+    /**
+     * Relation to TodoListItems.
+     *
+     * @return \Illuminate\Database\Eloquent\Relations\HasMany
+     */
+    public function items()
+    {
+        return $this->hasMany(
+            TodoListItem::class,
+            'todo_list_id',
+            'id'
+        )
+            ->ordered();
     }
 }

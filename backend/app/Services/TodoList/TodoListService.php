@@ -3,6 +3,7 @@
 namespace App\Services\TodoList;
 
 use App\Enums\ParticipantRolesEnum;
+use App\Enums\TodoListItemStatusEnum;
 use App\Exceptions\TodoListException;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
@@ -12,6 +13,8 @@ use App\Services\UserService;
 use App\User;
 use Illuminate\Database\Eloquent\ModelNotFoundException;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\DB;
 use Exception;
 use Illuminate\Support\Facades\Mail;
@@ -131,6 +134,36 @@ class TodoListService extends Service
             ->whereNotIn('email', [data_get($deleter, 'email')]);
 
         $this->mailRemovalNotification($todoList, $participants->all(), $deleter);
+    }
+
+    /**
+     * Add a new TodoListItem to the list.
+     *
+     * @param TodoList    $todoList
+     * @param array       $data
+     * @param User|null   $participant
+     * @throws TodoListException
+     * @return mixed
+     */
+    public function addItemToList($todoList, $data, $participant = null)
+    {
+        Arr::set($data, 'status', TodoListItemStatusEnum::PENDING);
+        Arr::set($data, 'deadline', Carbon::today()->addMonth());
+
+        if (is_null($participant)) {
+            $participant = Auth::user();
+        }
+
+        if ($todoList->isParticipant($participant) === false) {
+            throw new TodoListException(
+                422, sprintf('User %s is not a participant of %s', $participant->name, $todoList->name));
+        }
+
+        Arr::set($data, 'user_id', $participant->id);
+
+        return $todoList->addItems([
+            $data
+        ]);
     }
 
     /**
