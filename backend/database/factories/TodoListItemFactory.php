@@ -22,7 +22,3 @@ $factory->state(TodoListItem::class, TodoListItemStatusEnum::DONE, [
 $factory->state(TodoListItem::class, TodoListItemStatusEnum::PENDING, [
     'status' => TodoListItemStatusEnum::PENDING
 ]);
-
-$factory->state(TodoListItem::class, TodoListItemStatusEnum::EXPIRED, [
-    'status' => TodoListItemStatusEnum::EXPIRED
-]);

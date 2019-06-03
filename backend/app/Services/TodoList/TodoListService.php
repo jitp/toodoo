@@ -8,6 +8,7 @@ use App\Exceptions\TodoListException;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
+use App\Models\TodoListItem;
 use App\Services\Service;
 use App\Services\UserService;
 use App\User;
@@ -164,6 +165,30 @@ class TodoListService extends Service
         return $todoList->addItems([
             $data
         ]);
+    }
+
+    /**
+     * Toggle TodoListItem status as done/pending
+     *
+     * @param TodoListItem $todoItemList
+     * @return TodoListItem
+     */
+    public function toggleTodoItemListStatus($todoItemList)
+    {
+        if ($todoItemList->isExpired()) {
+            throw new TodoListException(422, sprintf('%s has expired', $todoItemList->name));
+        }
+
+        switch ($todoItemList->status) {
+            case TodoListItemStatusEnum::PENDING:
+                $todoItemList->markDone();
+                break;
+
+            default:
+                $todoItemList->markPending();
+        }
+
+        return $todoItemList;
     }
 
     /**

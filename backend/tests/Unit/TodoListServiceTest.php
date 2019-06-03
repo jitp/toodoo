@@ -466,6 +466,57 @@ class TodoListServiceTest extends TestCase
     }
 
     /**
+     * Test a TodoListItem can not be changed its status when it is expired.
+     *
+     * @return void
+     */
+    public function testCantChangeItemStatusWhenExpired()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+            'deadline' => Carbon::today()->subMonths(5)
+        ]);
+
+        $this->expectException(TodoListException::class);
+
+        $this->todoListService->toggleTodoItemListStatus($todoListItem->first());
+    }
+
+    /**
+     * Test toggling TodoListItem between statuses done/pending.
+     *
+     * @return void
+     */
+    public function testToggleTodoListItemStatus()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->first()->status);
+
+        $todoListItem = $this->todoListService->toggleTodoItemListStatus($todoListItem->first());
+
+        $this->assertEquals(TodoListItemStatusEnum::DONE, $todoListItem->status);
+
+        $todoListItem = $this->todoListService->toggleTodoItemListStatus($todoListItem);
+
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->status);
+    }
+
+    /**
      * Provide data for creating a todolist.
      *
      * @return array

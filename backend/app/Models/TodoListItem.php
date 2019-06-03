@@ -2,8 +2,10 @@
 
 namespace App\Models;
 
+use App\Enums\TodoListItemStatusEnum;
 use App\User;
 use Illuminate\Database\Eloquent\SoftDeletes;
+use Illuminate\Support\Carbon;
 use Spatie\EloquentSortable\Sortable;
 use Spatie\EloquentSortable\SortableTrait;
 
@@ -58,6 +60,50 @@ class TodoListItem extends Model implements Sortable
     public function buildSortQuery()
     {
         return static::query()->where('todo_list_id', $this->todo_list_id);
+    }
+
+    /**
+     * Determine if item has expired.
+     *
+     * @return bool
+     */
+    public function isExpired()
+    {
+        return $this->deadline < Carbon::now();
+    }
+
+    /**
+     * Mark TodoListItem as done.
+     *
+     * @param bool $save true to persist change in storage
+     * @return $this
+     */
+    public function markDone($save = true)
+    {
+        $this->status = TodoListItemStatusEnum::DONE;
+
+        if ($save) {
+            $this->save();
+        }
+
+        return $this;
+    }
+
+    /**
+     * Mark TodoListItem as pending.
+     *
+     * @param bool $save true to persist change in storage
+     * @return $this
+     */
+    public function markPending($save = true)
+    {
+        $this->status = TodoListItemStatusEnum::PENDING;
+
+        if ($save) {
+            $this->save();
+        }
+
+        return $this;
     }
 
     /**

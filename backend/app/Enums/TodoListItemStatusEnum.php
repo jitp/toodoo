@@ -15,5 +15,4 @@ final class TodoListItemStatusEnum extends Enum
 {
     const DONE = 'done';
     const PENDING = 'pending';
-    const EXPIRED = 'expired';
 }
