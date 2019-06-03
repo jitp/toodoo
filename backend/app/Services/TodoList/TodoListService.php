@@ -192,6 +192,18 @@ class TodoListService extends Service
     }
 
     /**
+     * Delete a TodoListItem
+     *
+     * @param TodoListItem $todoListItem
+     * @return bool|null
+     * @throws Exception
+     */
+    public function deleteTodoListItem($todoListItem)
+    {
+        return $todoListItem->delete();
+    }
+
+    /**
      * Send invitation email to collaborate on a todolist.
      *
      * @param TodoList   $todoList

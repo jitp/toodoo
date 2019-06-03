@@ -517,6 +517,35 @@ class TodoListServiceTest extends TestCase
     }
 
     /**
+     * Test deleting a TodoListItem
+     *
+     * @return void
+     */
+    public function testDeleteTodoListItem()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $result = $todoListItem->delete();
+
+        $this->assertEquals(1, $result);
+
+        $this->assertDatabaseHas('todo_list_items', [
+            'todo_list_id' => $todoListItem->todo_list_id,
+            'user_id' => $todoListItem->user_id,
+            'id' => $todoListItem->id,
+            'deleted_at' => $todoListItem->deleted_at
+        ]);
+    }
+
+    /**
      * Provide data for creating a todolist.
      *
      * @return array
