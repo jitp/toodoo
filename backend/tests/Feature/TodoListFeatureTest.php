@@ -502,4 +502,89 @@ class TodoListFeatureTest extends TestCase
 
         $this->assertNull($todoListItem->refresh()->deadline);
     }
+
+    /**
+     * Test changing TodoListItems order.
+     *
+     * @return void
+     */
+    public function testChangingTodoListItemsOrder()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItems = factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $nowOrder = $todoList->items()->pluck('id');
+
+        $this->assertEquals([1,2,3,4,5], $nowOrder->all());
+
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/change-items-order', [
+                'order' => [
+                    4,1,2,3,5
+                ]
+            ])
+            ->assertStatus(200)
+        ;
+
+        $this->assertEquals([4,1,2,3,5], $todoList->items()->pluck('id')->all());
+    }
+
+    /**
+     * Test invalid input when changing TodoListItems order.
+     *
+     * @return void
+     */
+    public function testInvalidChangingTodoListItemsOrder()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItems = factory(TodoListItem::class, 5)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $nowOrder = $todoList->items()->pluck('id');
+
+        $this->assertEquals([1,2,3,4,5], $nowOrder->all());
+
+        // Corrupted list items
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/change-items-order', [
+                'order' => [
+                    4,1,2,3,5,8
+                ]
+            ])
+            ->assertStatus(422)
+        ;
+
+        // Invalid data type
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/change-items-order', [
+                'order' => [
+                    'a', 'b', 'c', 'd', 'e'
+                ]
+            ])
+            ->assertStatus(422)
+        ;
+
+        // Missing order request parameter
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/change-items-order')
+            ->assertStatus(422)
+        ;
+    }
 }

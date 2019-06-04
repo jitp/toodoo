@@ -26,6 +26,7 @@ class TodoListResource extends JsonResource
             'name' => $this->name,
             'creator' => (new UserResource($this->creator)),
             'participants' => UserResource::collection($this->whenLoaded('participants')),
+            'items' => TodoListItemResource::collection($this->whenLoaded('items')),
             'created_at' => (string) $this->created_at,
             'updated_at' => (string) $this->updated_at,
             'deleted_at' => (string) $this->deleted_at,

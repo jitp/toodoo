@@ -39,9 +39,13 @@ Route::put('todolist/{todolist}/items/{item}/change-deadline', 'API\\TodoList\\T
 Route::apiResource('todolist/{todolist}/items', 'API\\TodoList\\TodoListItemController')
     ->except('index', 'update');
 
-//Invite new users to participate
+// Invite new users to participate
 Route::post('todolist/{todolist}/invite', 'API\\TodoList\\TodoListController@invite')
     ->name('todolist.invite');
+
+// Change items order
+Route::put('todolist/{todolist}/change-items-order', 'API\\TodoList\\TodoListController@changeItemsOrder')
+    ->name('todolist.change-items-order');
 
 Route::apiResource('todolist', 'API\\TodoList\\TodoListController')
     ->except('index', 'update');

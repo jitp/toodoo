@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\TodoList;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Requests\TodoList\ChangeOrderFormRequest;
 use App\Http\Requests\TodoList\CreateTodoListFormRequest;
 use App\Http\Requests\TodoList\InviteFormRequest;
 use App\Http\Resources\TodoListResource;
@@ -36,7 +37,8 @@ class TodoListController extends ApiController
         $this->todoListService = $todoListService;
 
         $this->middleware('login')->only('show');
-        $this->middleware('auth:api')->only('destroy', 'invite');
+        $this->middleware('auth:api')
+            ->only('destroy', 'invite', 'changeItemsOrder');
     }
 
     /**
@@ -93,5 +95,21 @@ class TodoListController extends ApiController
         $this->todoListService->invite($todoList, $input, Auth::user());
 
         return response()->json();
+    }
+
+    /**
+     * Change order of items in list.
+     *
+     * @param ChangeOrderFormRequest $request
+     * @param TodoList               $todoList
+     * @return TodoListResource
+     */
+    public function changeItemsOrder(ChangeOrderFormRequest $request, TodoList $todoList)
+    {
+        $input = $request->validated();
+
+        $this->todoListService->changeTodoListItemsOrder($todoList, $input['order']);
+
+        return (new TodoListResource($todoList->refresh()->load('items')));
     }
 }
