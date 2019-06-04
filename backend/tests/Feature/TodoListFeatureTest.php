@@ -235,4 +235,47 @@ class TodoListFeatureTest extends TestCase
             });
         }
     }
+
+    /**
+     * Test invitation to new user to collaborate.
+     *
+     * @return void
+     */
+    public function testInviteUserToCollaborate()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::CREATOR);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $newEmail = $this->faker->safeEmail;
+
+        Mail::fake();
+
+        $this->assertDatabaseMissing('users', [
+            'email' => $newEmail
+        ]);
+
+        $response = $this->postJson('/api/todolist/' . $hash . '/invite', [
+            'participant' => $newEmail
+        ]);
+
+        $response
+            ->assertStatus(200)
+        ;
+
+        Mail::assertSent(TodoListInvitation::class, 1);
+
+        Mail::assertSent(TodoListInvitation::class, function($mail) use ($newEmail) {
+            return $mail->hasTo($newEmail);
+        });
+
+        $this->assertNotNull($todoList->participants()->get()->firstWhere('email', $newEmail));
+
+        $this->assertDatabaseHas('users', [
+            'email' => $newEmail
+        ]);
+    }
 }

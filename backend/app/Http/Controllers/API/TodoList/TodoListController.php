@@ -4,11 +4,13 @@ namespace App\Http\Controllers\API\TodoList;
 
 use App\Http\Controllers\ApiController;
 use App\Http\Requests\TodoList\CreateTodoListFormRequest;
+use App\Http\Requests\TodoList\InviteFormRequest;
 use App\Http\Resources\TodoListResource;
 use App\Models\TodoList;
 use App\Services\TodoList\TodoListService;
 use Illuminate\Http\Request;
 use Illuminate\Http\Response;
+use Illuminate\Support\Facades\Auth;
 
 /**
  * Class TodoListController
@@ -69,6 +71,23 @@ class TodoListController extends ApiController
     public function destroy(TodoList $todoList)
     {
         $this->todoListService->delete($todoList);
+
+        return response()->json();
+    }
+
+    /**
+     * Invite new users to collaborate.
+     *
+     * @param InviteFormRequest $request
+     * @param TodoList          $todoList
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
+     */
+    public function invite(InviteFormRequest $request, TodoList $todoList)
+    {
+        $input = $request->validated();
+
+        $this->todoListService->invite($todoList, $input, Auth::user());
 
         return response()->json();
     }

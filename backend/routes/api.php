@@ -25,5 +25,10 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
  *
  * =====================================================================================================================
  */
+
+//Invite new users to participate
+Route::post('todolist/{todolist}/invite', 'API\\TodoList\\TodoListController@invite')
+    ->name('todolist.invite');
+
 Route::apiResource('todolist', 'API\\TodoList\\TodoListController')
     ->except('index', 'update');
