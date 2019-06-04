@@ -26,7 +26,8 @@ class TodoListItemController extends ApiController
     {
         $this->todoListService = $todoListService;
 
-        $this->middleware('auth:api')->only('store');
+        $this->middleware('auth:api');
+
         $this->middleware('todolist.item')
             ->only('destroy', 'toggleStatus', 'changeDeadline');
     }
