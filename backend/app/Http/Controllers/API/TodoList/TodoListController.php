@@ -62,11 +62,14 @@ class TodoListController extends ApiController
     /**
      * Remove the specified resource from storage.
      *
-     * @param  TodoList $todoList
-     * @return \Illuminate\Http\Response
+     * @param TodoList $todoList
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
     public function destroy(TodoList $todoList)
     {
-        //
+        $this->todoListService->delete($todoList);
+
+        return response()->json();
     }
 }

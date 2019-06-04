@@ -4,6 +4,7 @@ namespace Tests\Feature;
 
 use App\Enums\ParticipantRolesEnum;
 use App\Mail\TodoListInvitation;
+use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
@@ -197,5 +198,41 @@ class TodoListFeatureTest extends TestCase
         $response
             ->assertStatus(200)
         ;
+    }
+
+    /**
+     * Test TodoList deletion with email notification included.
+     *
+     * @return void
+     */
+    public function testTodoListDelete()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::CREATOR);
+
+        $users = factory(User::class, 5)->create();
+
+        $todoList->addParticipants($users->all());
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        Mail::fake();
+
+        $response = $this->deleteJson('/api/todolist/' . $hash);
+
+        $response->assertStatus(200);
+
+        Mail::assertSent(TodoListRemovalNotification::class, 6);
+
+        $users = $users->all();
+        $users[] = $user;
+
+        foreach ($users as $user) {
+            Mail::assertSent(TodoListRemovalNotification::class, function($mail) use ($user) {
+                return $mail->hasTo($user->email);
+            });
+        }
     }
 }
