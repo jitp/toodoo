@@ -278,4 +278,42 @@ class TodoListTest extends TestCase
         $this->assertInstanceOf(TodoList::class, $foundedList);
         $this->assertEquals($todoList->id, $foundedList->id);
     }
+
+    /**
+     * Test getting a Participant from Hash.
+     *
+     * @return void
+     */
+    public function testGetParticipantByHash()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $participant = $todoList->participants()->first();
+
+        $this->assertInstanceOf(User::class, $todoList->getParticipantByHash($participant->participant->hash));
+
+        $this->assertEquals($participant->id, $todoList->getParticipantByHash($participant->participant->hash)->id);
+    }
+
+    /**
+     * Test null is return when a wrong hash is given.
+     *
+     * @return void
+     */
+    public function testGetNullParticipantWithNoneExistingHash()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $participant = $todoList->participants()->first();
+
+        $this->assertInstanceOf(User::class, $participant);
+
+        $this->assertNull($todoList->getParticipantByHash('352eget23'));
+    }
 }

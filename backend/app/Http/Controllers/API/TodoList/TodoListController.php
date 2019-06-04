@@ -34,6 +34,9 @@ class TodoListController extends ApiController
     public function __construct(TodoListService $todoListService)
     {
         $this->todoListService = $todoListService;
+
+        $this->middleware('login')->only('show');
+        $this->middleware('auth:api')->only('destroy', 'invite');
     }
 
     /**

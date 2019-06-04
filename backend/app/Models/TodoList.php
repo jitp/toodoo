@@ -109,6 +109,19 @@ class TodoList extends Model
     }
 
     /**
+     * Get participant by hash.
+     *
+     * @param string $hash
+     * @return mixed
+     */
+    public function getParticipantByHash($hash)
+    {
+        return $this->participants()
+            ->where('hash', $hash)
+            ->first();
+    }
+
+    /**
      * =================================================================================================================
      *
      * ACCESSORS & MUTATORS

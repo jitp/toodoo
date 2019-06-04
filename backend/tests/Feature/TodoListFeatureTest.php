@@ -10,6 +10,7 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
 use Illuminate\Foundation\Testing\WithFaker;
@@ -201,6 +202,29 @@ class TodoListFeatureTest extends TestCase
     }
 
     /**
+     * Test Login User when showing TodoList.
+     *
+     * @return void
+     */
+    public function testLoginOnShowTodoList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::CREATOR);
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $response = $this->getJson('/api/todolist/' . $hash);
+
+        $response
+            ->assertStatus(200)
+        ;
+
+        $this->assertNotNull(Auth::user());
+        $this->assertEquals($user->id, Auth::user()->id);
+    }
+
+    /**
      * Test TodoList deletion with email notification included.
      *
      * @return void
@@ -220,14 +244,14 @@ class TodoListFeatureTest extends TestCase
 
         Mail::fake();
 
-        $response = $this->deleteJson('/api/todolist/' . $hash);
+        $this->actingAs($user, 'api')
+            ->deleteJson('/api/todolist/' . $hash)
+            ->assertStatus(200)
+        ;
 
-        $response->assertStatus(200);
-
-        Mail::assertSent(TodoListRemovalNotification::class, 6);
+        Mail::assertSent(TodoListRemovalNotification::class, 5);
 
         $users = $users->all();
-        $users[] = $user;
 
         foreach ($users as $user) {
             Mail::assertSent(TodoListRemovalNotification::class, function($mail) use ($user) {
@@ -258,11 +282,10 @@ class TodoListFeatureTest extends TestCase
             'email' => $newEmail
         ]);
 
-        $response = $this->postJson('/api/todolist/' . $hash . '/invite', [
-            'participant' => $newEmail
-        ]);
-
-        $response
+        $this->actingAs($user, 'api')
+            ->postJson('/api/todolist/' . $hash . '/invite', [
+                'participant' => $newEmail
+                ])
             ->assertStatus(200)
         ;
 
