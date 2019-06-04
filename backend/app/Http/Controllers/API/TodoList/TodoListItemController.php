@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\TodoList;
 
 use App\Http\Controllers\ApiController;
+use App\Models\TodoListItem;
 use App\Http\Requests\TodoList\CreateTodoListItemFormRequest;
 use App\Http\Resources\TodoListItemResource;
 use App\Models\TodoList;
@@ -25,6 +26,7 @@ class TodoListItemController extends ApiController
         $this->todoListService = $todoListService;
 
         $this->middleware('auth:api')->only('store');
+        $this->middleware('todolist.item')->only('destroy');
     }
 
     /**
@@ -42,24 +44,17 @@ class TodoListItemController extends ApiController
     }
 
     /**
-     * Display the specified resource.
-     *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
-     */
-    public function show($id)
-    {
-        //
-    }
-
-    /**
      * Remove the specified resource from storage.
      *
-     * @param  int  $id
-     * @return \Illuminate\Http\Response
+     * @param TodoList     $todoList
+     * @param TodoListItem $todoListItem
+     * @return \Illuminate\Http\JsonResponse
+     * @throws \Exception
      */
-    public function destroy($id)
+    public function destroy(TodoList $todoList, TodoListItem $todoListItem)
     {
-        //
+        $this->todoListService->deleteTodoListItem($todoListItem);
+
+        return response()->json();
     }
 }

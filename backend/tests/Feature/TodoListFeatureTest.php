@@ -6,6 +6,7 @@ use App\Enums\ParticipantRolesEnum;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
+use App\Models\TodoListItem;
 use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
@@ -332,5 +333,65 @@ class TodoListFeatureTest extends TestCase
             'user_id' => $user->id,
             'todo_list_id' => $todoList->id
         ]);
+    }
+
+    /**
+     * Test 404 error response when deleting an item not belonging to list.
+     *
+     * @return void
+     */
+    public function testDeletingItemNotBelongingToList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => 10,
+            'user_id' => 10,
+        ]);
+
+        $this->assertCount(0, $todoList->items()->get());
+        $this->assertDatabaseHas('todo_list_items', [
+            'todo_list_id' => 10,
+            'user_id' => 10,
+        ]);
+
+        $this->actingAs($user, 'api')
+            ->deleteJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id)
+            ->assertStatus(404)
+        ;
+    }
+
+    /**
+     * Test deleting a list item.
+     *
+     * @return void
+     */
+    public function testDeletingItemFromList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->assertCount(1, $todoList->items()->get());
+
+        $this->actingAs($user, 'api')
+            ->deleteJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id)
+            ->assertStatus(200)
+        ;
+
+        $this->assertCount(0, $todoList->items()->get());
     }
 }
