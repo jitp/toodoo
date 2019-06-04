@@ -122,6 +122,19 @@ class TodoList extends Model
     }
 
     /**
+     * Determine if list has given item.
+     *
+     * @param TodoListItem|integer $item
+     * @return bool
+     */
+    public function hasItem($item)
+    {
+        $id = data_get($item, 'id', $item);
+
+        return $this->items->firstWhere('id', $id) !== null;
+    }
+
+    /**
      * =================================================================================================================
      *
      * ACCESSORS & MUTATORS

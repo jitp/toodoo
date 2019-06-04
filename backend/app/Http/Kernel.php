@@ -3,6 +3,7 @@
 namespace App\Http;
 
 use App\Http\Middleware\HashAuthenticate;
+use App\Http\Middleware\TodoListItem;
 use Illuminate\Foundation\Http\Kernel as HttpKernel;
 
 class Kernel extends HttpKernel
@@ -61,7 +62,8 @@ class Kernel extends HttpKernel
         'signed' => \Illuminate\Routing\Middleware\ValidateSignature::class,
         'throttle' => \Illuminate\Routing\Middleware\ThrottleRequests::class,
         'verified' => \Illuminate\Auth\Middleware\EnsureEmailIsVerified::class,
-        'login' => HashAuthenticate::class
+        'login' => HashAuthenticate::class,
+        'todolist.item' => TodoListItem::class,
     ];
 
     /**

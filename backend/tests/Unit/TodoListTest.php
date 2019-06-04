@@ -316,4 +316,28 @@ class TodoListTest extends TestCase
 
         $this->assertNull($todoList->getParticipantByHash('352eget23'));
     }
+
+    /**
+     * Test TodoList has item.
+     *
+     * @return void
+     */
+    public function testTodoListHasItem()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $name = $this->faker->name;
+
+        $this->assertFalse($todoList->hasItem(1));
+
+        factory(TodoListItem::class)->create([
+                'user_id' => $user,
+                'todo_list_id' => $todoList->id
+        ]);
+
+        $this->assertTrue($todoList->load('items')->hasItem(1));
+    }
 }
