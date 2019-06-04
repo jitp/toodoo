@@ -463,4 +463,43 @@ class TodoListFeatureTest extends TestCase
 
         $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->refresh()->status);
     }
+
+    /**
+     * Test changing deadline to TodoListItem.
+     *
+     * @return void
+     */
+    public function testChangingDeadlineOfTodoListItem()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+            'deadline' => Carbon::today()
+        ]);
+
+        $this->assertEquals(Carbon::today(), $todoListItem->deadline);
+
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id . '/change-deadline', [
+                'deadline' => Carbon::tomorrow()
+            ])
+            ->assertStatus(200)
+        ;
+
+        $this->assertEquals(Carbon::tomorrow(), $todoListItem->refresh()->deadline);
+
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id . '/change-deadline')
+            ->assertStatus(200)
+        ;
+
+        $this->assertNull($todoListItem->refresh()->deadline);
+    }
 }

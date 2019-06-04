@@ -223,12 +223,19 @@ class TodoListService extends Service
      *
      * @param TodoListItem       $todoListItem
      * @param string|Carbon|null $deadline
+     * @return TodoListItem
      */
     public function changeTodoListItemDeadline($todoListItem, $deadline)
     {
+        if (!is_null($deadline)) {
+            $deadline = Carbon::make($deadline);
+        }
+
         $todoListItem->deadline = $deadline;
 
         $todoListItem->save();
+
+        return $todoListItem;
     }
 
     /**

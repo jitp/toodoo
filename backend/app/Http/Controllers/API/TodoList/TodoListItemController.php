@@ -3,6 +3,7 @@
 namespace App\Http\Controllers\API\TodoList;
 
 use App\Http\Controllers\ApiController;
+use App\Http\Requests\TodoList\ChangeDeadlineFormRequest;
 use App\Models\TodoListItem;
 use App\Http\Requests\TodoList\CreateTodoListItemFormRequest;
 use App\Http\Resources\TodoListItemResource;
@@ -27,7 +28,7 @@ class TodoListItemController extends ApiController
 
         $this->middleware('auth:api')->only('store');
         $this->middleware('todolist.item')
-            ->only('destroy', 'toggleStatus');
+            ->only('destroy', 'toggleStatus', 'changeDeadline');
     }
 
     /**
@@ -69,5 +70,20 @@ class TodoListItemController extends ApiController
     public function toggleStatus(TodoList $todoList, TodoListItem $todoListItem)
     {
         return (new TodoListItemResource($this->todoListService->toggleTodoItemListStatus($todoListItem)));
+    }
+
+    /**
+     * Change deadline of a TodoListItem
+     *
+     * @param ChangeDeadlineFormRequest $request
+     * @param TodoList                  $todoList
+     * @param TodoListItem              $todoListItem
+     * @return TodoListItemResource
+     */
+    public function changeDeadline(ChangeDeadlineFormRequest $request, TodoList $todoList, TodoListItem $todoListItem)
+    {
+        $input = $request->validated();
+
+        return (new TodoListItemResource($this->todoListService->changeTodoListItemDeadline($todoListItem, $input['deadline'] ?? null)));
     }
 }

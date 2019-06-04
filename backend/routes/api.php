@@ -26,8 +26,14 @@ Route::middleware('auth:api')->get('/user', function (Request $request) {
  * =====================================================================================================================
  */
 
+// Toggle TodoListItem status
 Route::put('todolist/{todolist}/items/{item}/toggle-status', 'API\\TodoList\\TodoListItemController@toggleStatus')
     ->name('items.toggle-status')
+;
+
+// Change TodoListItem deadline
+Route::put('todolist/{todolist}/items/{item}/change-deadline', 'API\\TodoList\\TodoListItemController@changeDeadline')
+    ->name('items.change-deadline')
 ;
 
 Route::apiResource('todolist/{todolist}/items', 'API\\TodoList\\TodoListItemController')
