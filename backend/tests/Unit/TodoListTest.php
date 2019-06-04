@@ -258,4 +258,24 @@ class TodoListTest extends TestCase
     {
         $this->assertFalse($todoList->isWholeSetOfItemIds([1,2,3,4]));
     }
+
+    /**
+     * Test a TodoList can be found by user participant hash.
+     *
+     * @return void
+     */
+    public function testGetTodoListByHash()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $this->assertNull(TodoList::hasHash($this->faker->sentence)->first());
+
+        $foundedList = TodoList::hasHash($todoList->participants->first()->participant->hash)->first();
+
+        $this->assertInstanceOf(TodoList::class, $foundedList);
+        $this->assertEquals($todoList->id, $foundedList->id);
+    }
 }

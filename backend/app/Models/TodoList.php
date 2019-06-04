@@ -4,9 +4,9 @@ namespace App\Models;
 
 use App\Enums\ParticipantRolesEnum;
 use App\User;
+use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\SoftDeletes;
 use Illuminate\Support\Arr;
-use Illuminate\Support\Facades\Hash;
 
 /**
  * Class TodoList
@@ -48,7 +48,7 @@ class TodoList extends Model
 
         foreach ($participants as $participant) {
             $prepareData[$participant['id']] = [
-                'hash' => Hash::make($this->name . $participant->email . time()),
+                'hash' => hash_hmac('sha256', $this->name . $participant->email . time(), $this->name),
                 'role' => $role
             ];
         }
@@ -181,5 +181,26 @@ class TodoList extends Model
             'id'
         )
             ->ordered();
+    }
+
+    /**
+     * =================================================================================================================
+     *
+     * SCOPES
+     *
+     * =================================================================================================================
+     */
+
+    /**
+     * Scope to limit models by hash.
+     *
+     * @param Builder $query
+     * @param string  $hash
+     */
+    public function scopeHasHash($query, $hash)
+    {
+        $query->whereHas('participants', function (Builder $builder) use ($hash) {
+            $builder->where('hash', $hash);
+        });
     }
 }

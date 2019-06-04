@@ -2,7 +2,10 @@
 
 namespace Tests\Feature;
 
+use App\Enums\ParticipantRolesEnum;
 use App\Mail\TodoListInvitation;
+use App\Models\TodoList;
+use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Arr;
@@ -174,5 +177,25 @@ class TodoListFeatureTest extends TestCase
                 return $mail->hasTo($email);
         });
         }
+    }
+
+    /**
+     * Test getting a TodoList resource.
+     *
+     * @return void
+     */
+    public function testShowTodoList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user, ParticipantRolesEnum::CREATOR);
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $response = $this->getJson('/api/todolist/' . $hash);
+
+        $response
+            ->assertStatus(200)
+        ;
     }
 }

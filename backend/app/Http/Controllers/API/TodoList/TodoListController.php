@@ -51,24 +51,12 @@ class TodoListController extends ApiController
     /**
      * Display the specified resource.
      *
-     * @param  TodoList  $todoList
-     * @return \Illuminate\Http\Response
+     * @param TodoList $todoList
+     * @return TodoListResource
      */
     public function show(TodoList $todoList)
     {
-        //
-    }
-
-    /**
-     * Update the specified resource in storage.
-     *
-     * @param  \Illuminate\Http\Request  $request
-     * @param  TodoList  $todoList
-     * @return \Illuminate\Http\Response
-     */
-    public function update(Request $request, TodoList $todoList)
-    {
-        //
+        return (new TodoListResource($todoList));
     }
 
     /**
