@@ -3,6 +3,7 @@
 namespace Tests\Feature;
 
 use App\Enums\ParticipantRolesEnum;
+use App\Enums\TodoListItemStatusEnum;
 use App\Mail\TodoListInvitation;
 use App\Mail\TodoListRemovalNotification;
 use App\Models\TodoList;
@@ -11,6 +12,7 @@ use App\User;
 use Illuminate\Foundation\Testing\DatabaseMigrations;
 use Illuminate\Foundation\Testing\DatabaseTransactions;
 use Illuminate\Support\Arr;
+use Illuminate\Support\Carbon;
 use Illuminate\Support\Facades\Auth;
 use Illuminate\Support\Facades\Mail;
 use Tests\TestCase;
@@ -393,5 +395,72 @@ class TodoListFeatureTest extends TestCase
         ;
 
         $this->assertCount(0, $todoList->items()->get());
+    }
+
+    /**
+     * Test toggling status of a TodoListItem.
+     *
+     * @return void
+     */
+    public function testTogglingTodoListItemStatus()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+        ]);
+
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->status);
+
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id . '/toggle-status')
+            ->assertStatus(200)
+        ;
+
+        $this->assertEquals(TodoListItemStatusEnum::DONE, $todoListItem->refresh()->status);
+
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id . '/toggle-status')
+            ->assertStatus(200)
+        ;
+
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->refresh()->status);
+    }
+
+    /**
+     * Test a TodoListItem can't be changed its status when expired.
+     *
+     * @return void
+     */
+    public function testChangingStatusToExpiredTodoListItem()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+            'deadline' => Carbon::today()->subMonth()
+        ]);
+
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->status);
+        $this->assertTrue($todoListItem->isExpired());
+
+        $this->actingAs($user, 'api')
+            ->putJson('/api/todolist/' . $hash . '/items/' . $todoListItem->id . '/toggle-status')
+            ->assertStatus(422)
+        ;
+
+        $this->assertEquals(TodoListItemStatusEnum::PENDING, $todoListItem->refresh()->status);
     }
 }

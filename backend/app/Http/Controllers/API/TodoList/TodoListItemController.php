@@ -26,7 +26,8 @@ class TodoListItemController extends ApiController
         $this->todoListService = $todoListService;
 
         $this->middleware('auth:api')->only('store');
-        $this->middleware('todolist.item')->only('destroy');
+        $this->middleware('todolist.item')
+            ->only('destroy', 'toggleStatus');
     }
 
     /**
@@ -56,5 +57,17 @@ class TodoListItemController extends ApiController
         $this->todoListService->deleteTodoListItem($todoListItem);
 
         return response()->json();
+    }
+
+    /**
+     * Toggle status (pending/done) of a TodoListItem
+     *
+     * @param TodoList     $todoList
+     * @param TodoListItem $todoListItem
+     * @return TodoListItemResource
+     */
+    public function toggleStatus(TodoList $todoList, TodoListItem $todoListItem)
+    {
+        return (new TodoListItemResource($this->todoListService->toggleTodoItemListStatus($todoListItem)));
     }
 }
