@@ -301,4 +301,36 @@ class TodoListFeatureTest extends TestCase
             'email' => $newEmail
         ]);
     }
+
+    /**
+     * Test participant can add items to the list.
+     *
+     * @return void
+     */
+    public function testParticipantCanAddItemToList()
+    {
+        $user = factory(User::class)->create();
+        $todoList = factory(TodoList::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $hash = $todoList->participants->first()->participant->hash;
+
+        $this->assertDatabaseMissing('todo_list_items', []);
+
+        $name = $this->faker->sentence;
+
+        $this->actingAs($user, 'api')
+            ->postJson('/api/todolist/' . $hash . '/items', [
+                'name' => $name
+            ])
+            ->assertStatus(201)
+        ;
+
+        $this->assertDatabaseHas('todo_list_items', [
+            'name' => $name,
+            'user_id' => $user->id,
+            'todo_list_id' => $todoList->id
+        ]);
+    }
 }
