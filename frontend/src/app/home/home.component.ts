@@ -6,6 +6,7 @@ import {TodoList} from '../models/todo-list';
 import {TodoListService} from '../services/todo-list.service';
 import {LoadingService} from '../services/loading.service';
 import {finalize} from 'rxjs/internal/operators';
+import {NotifierService} from 'angular-notifier';
 
 @Component({
     selector: 'app-home',
@@ -25,7 +26,8 @@ export class HomeComponent implements OnInit {
     constructor(
         protected fb: FormBuilder,
         protected todoListService: TodoListService,
-        protected loadingService: LoadingService
+        protected loadingService: LoadingService,
+        protected notifierService: NotifierService
     ) {
         this.createTodoListForm();
     }
@@ -89,7 +91,15 @@ export class HomeComponent implements OnInit {
                 )
             )
             .subscribe(
-                () => this.rebuildForm()
+                () => {
+                    this.rebuildForm();
+                    this.notifierService.notify(
+                        'success', 'Your todo list has been created. Follow the instructions sent at your email account');
+                },
+                (error) => {
+                    this.notifierService.notify(
+                        'danger', 'Your todo list was not created.');
+                }
             )
     }
 
