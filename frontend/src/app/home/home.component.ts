@@ -4,6 +4,8 @@ import {RxwebValidators} from '@rxweb/reactive-form-validators';
 import {Participant} from '../models/participant';
 import {TodoList} from '../models/todo-list';
 import {TodoListService} from '../services/todo-list.service';
+import {LoadingService} from '../services/loading.service';
+import {finalize} from 'rxjs/internal/operators';
 
 @Component({
     selector: 'app-home',
@@ -22,7 +24,8 @@ export class HomeComponent implements OnInit {
 
     constructor(
         protected fb: FormBuilder,
-        protected todoListService: TodoListService
+        protected todoListService: TodoListService,
+        protected loadingService: LoadingService
     ) {
         this.createTodoListForm();
     }
@@ -40,6 +43,12 @@ export class HomeComponent implements OnInit {
                 RxwebValidators.ascii(),
                 RxwebValidators.maxLength({value: 150})
             ])],
+            creator: this.fb.group({
+                email: ['', Validators.compose([
+                    RxwebValidators.required(),
+                    RxwebValidators.email(),
+                ])]
+            }),
             participants: this.fb.array([])
         });
     }
@@ -70,9 +79,18 @@ export class HomeComponent implements OnInit {
     public onSubmit() {
         const data = this.prepareSaveTodoList();
 
+        this.loadingService.start();
+
         return this.todoListService
             .addTodoList(data)
-            .subscribe()
+            .pipe(
+                finalize(
+                    () => this.loadingService.stop()
+                )
+            )
+            .subscribe(
+                () => this.rebuildForm()
+            )
     }
 
     /**
@@ -118,6 +136,7 @@ export class HomeComponent implements OnInit {
 
         const saveTodoList: Partial<TodoList> = {
             name: formModel.name as string,
+            creator: {...formModel.creator} as Participant,
             participants: participantsDeepCopy
         };
 
@@ -129,5 +148,6 @@ export class HomeComponent implements OnInit {
      */
     protected rebuildForm() {
         this.todoListForm.reset();
+        this.setParticipants([]);
     }
 }

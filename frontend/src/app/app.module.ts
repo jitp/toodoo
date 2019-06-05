@@ -8,6 +8,7 @@ import {ReactiveFormsModule} from '@angular/forms';
 import {RxReactiveFormsModule} from '@rxweb/reactive-form-validators';
 import {NgBootstrapFormValidationModule} from 'ng-bootstrap-form-validation';
 import {HttpClientModule} from '@angular/common/http';
+import {NgxLoadingModule} from 'ngx-loading';
 
 @NgModule({
     declarations: [
@@ -21,7 +22,8 @@ import {HttpClientModule} from '@angular/common/http';
         RxReactiveFormsModule,
         NgBootstrapFormValidationModule.forRoot(),
         NgBootstrapFormValidationModule,
-        HttpClientModule
+        HttpClientModule,
+        NgxLoadingModule.forRoot({})
     ],
     providers: [],
     bootstrap: [AppComponent]
