@@ -7,6 +7,8 @@ import {TodoListService} from '../services/todo-list.service';
 import {LoadingService} from '../services/loading.service';
 import {finalize} from 'rxjs/internal/operators';
 import {NotifierService} from 'angular-notifier';
+import {HttpErrorResponse} from '@angular/common/http';
+import {render422FormFieldErrors} from '../utils/helpers';
 
 @Component({
     selector: 'app-home',
@@ -96,9 +98,8 @@ export class HomeComponent implements OnInit {
                     this.notifierService.notify(
                         'success', 'Your todo list has been created. Follow the instructions sent at your email account');
                 },
-                (error) => {
-                    this.notifierService.notify(
-                        'danger', 'Your todo list was not created.');
+                (errorResponse: HttpErrorResponse) => {
+                    render422FormFieldErrors(errorResponse, this.todoListForm);
                 }
             )
     }

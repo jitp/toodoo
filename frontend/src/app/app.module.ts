@@ -10,6 +10,8 @@ import {NgBootstrapFormValidationModule} from 'ng-bootstrap-form-validation';
 import {HttpClientModule} from '@angular/common/http';
 import {NgxLoadingModule} from 'ngx-loading';
 import {NotifierModule, NotifierOptions} from 'angular-notifier';
+import {ErrorInterceptorProvider} from './interceptors/error.interceptor';
+import {MY_CUSTOM_ERRORS_PROVIDER} from './utils/custom-errors';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -69,7 +71,10 @@ const notifierDefaultOptions: NotifierOptions = {
         NgxLoadingModule.forRoot({}),
         NotifierModule.withConfig( notifierDefaultOptions)
     ],
-    providers: [],
+    providers: [
+        ErrorInterceptorProvider,
+        MY_CUSTOM_ERRORS_PROVIDER
+    ],
     bootstrap: [AppComponent]
 })
 export class AppModule {
