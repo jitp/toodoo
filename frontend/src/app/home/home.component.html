@@ -1,3 +1,15 @@
+<section class="jumbotron text-center">
+    <div class="container">
+        <h1 class="jumbotron-heading">Welcome to TOODOO!</h1>
+        <p class="lead text-muted">
+            An easy to use tool for organizing your todo lists! Best part is you don't have to be all alone, you can COLLABORATE!
+        </p>
+        <p>
+            Invite your friends, collegues and family to start orginizing your activities!
+        </p>
+    </div>
+</section>
+
 <div class="container">
     <div class="row">
         <div class="col">
@@ -6,20 +18,35 @@
             <form [formGroup]="todoListForm" class="needs-validation" novalidate="" (validSubmit)="onSubmit()">
                 <!--TodoList Name-->
                 <div class="form-group">
-                    <label for="name">Name:</label>
+                    <label for="name">
+                        Todo list name:
+                        <i class="text-danger">*</i>
+                    </label>
                     <input formControlName="name" type="text" class="form-control" id="name">
                 </div>
 
                 <div formGroupName="creator">
                     <div class="form-group">
-                        <label for="creator-email">Email:</label>
+                        <label for="creator-email">
+                            Your email:
+                            <i class="text-danger">*</i>
+                        </label>
                         <input formControlName="email" type="text" class="form-control" id="creator-email">
                     </div>
                 </div>
 
                 <!--Participants-->
                 <div formArrayName="participants" class="well well-lg">
-                    <h5 class="mb-3">Maybe some participants?</h5>
+                    <h5
+                        *ngIf="participants.controls.length"
+                        class="mb-3">
+                        Excellent! You will have some help.
+                    </h5>
+                    <h5
+                        *ngIf="!participants.controls.length"
+                        class="mb-3">
+                        Perhaps some participants?
+                    </h5>
 
                     <!--Participant i-->
                     <div *ngFor="let participant of participants.controls; let i=index" [formGroupName]="i" >
