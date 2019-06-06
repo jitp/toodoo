@@ -12,6 +12,7 @@ import {NgxLoadingModule} from 'ngx-loading';
 import {NotifierModule, NotifierOptions} from 'angular-notifier';
 import {ErrorInterceptorProvider} from './interceptors/error.interceptor';
 import {MY_CUSTOM_ERRORS_PROVIDER} from './utils/custom-errors';
+import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -58,7 +59,8 @@ const notifierDefaultOptions: NotifierOptions = {
 @NgModule({
     declarations: [
         AppComponent,
-        HomeComponent
+        HomeComponent,
+        PageNotFoundComponent
     ],
     imports: [
         BrowserModule,
