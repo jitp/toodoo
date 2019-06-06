@@ -13,6 +13,7 @@ import {NotifierModule, NotifierOptions} from 'angular-notifier';
 import {ErrorInterceptorProvider} from './interceptors/error.interceptor';
 import {MY_CUSTOM_ERRORS_PROVIDER} from './utils/custom-errors';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
+import { TodoListComponent } from './todo-list/todo-list.component';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -59,8 +60,9 @@ const notifierDefaultOptions: NotifierOptions = {
 @NgModule({
     declarations: [
         AppComponent,
+        PageNotFoundComponent,
         HomeComponent,
-        PageNotFoundComponent
+        TodoListComponent
     ],
     imports: [
         BrowserModule,

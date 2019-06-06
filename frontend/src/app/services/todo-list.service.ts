@@ -3,6 +3,7 @@ import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {TodoList} from '../models/todo-list';
 import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
+import {map} from 'rxjs/internal/operators';
 
 const httpOptions = {
     headers: new HttpHeaders({ 'Content-Type': 'application/json' })
@@ -31,5 +32,20 @@ export class TodoListService {
      */
     addTodoList(todoList: Partial<TodoList>): Observable<TodoList> {
         return this.http.post<TodoList>(this.todoListsUrl, todoList, httpOptions);
+    }
+
+    /**
+     * Get TodoList
+     *
+     * @param {string} hash
+     * @return {Observable<TodoList>}
+     */
+    getTodoList(hash: string): Observable<TodoList> {
+        return this.http.get<TodoList>(`${this.todoListsUrl}/${hash}`)
+            .pipe(
+                map(
+                    (response) => response.data
+                )
+            );
     }
 }
