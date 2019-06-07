@@ -41,7 +41,7 @@ export class TodoListService {
      * @return {Observable<TodoList>}
      */
     getTodoList(hash: string): Observable<TodoList> {
-        return this.http.get<TodoList>(`${this.todoListsUrl}/${hash}`)
+        return this.http.get<{data: TodoList}>(`${this.todoListsUrl}/${hash}`)
             .pipe(
                 map(
                     (response) => response.data
