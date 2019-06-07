@@ -14,6 +14,8 @@ import {ErrorInterceptorProvider} from './interceptors/error.interceptor';
 import {MY_CUSTOM_ERRORS_PROVIDER} from './utils/custom-errors';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
 import { TodoListComponent } from './todo-list/todo-list.component';
+import { SweetAlert2Module } from '@sweetalert2/ngx-sweetalert2';
+import {AuthorizationInterceptorProvider} from './interceptors/authorization.interceptor';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -73,10 +75,17 @@ const notifierDefaultOptions: NotifierOptions = {
         NgBootstrapFormValidationModule,
         HttpClientModule,
         NgxLoadingModule.forRoot({}),
-        NotifierModule.withConfig( notifierDefaultOptions)
+        NotifierModule.withConfig( notifierDefaultOptions),
+        SweetAlert2Module.forRoot({
+            buttonsStyling: false,
+            customClass: 'modal-content',
+            confirmButtonClass: 'btn btn-primary',
+            cancelButtonClass: 'btn'
+        })
     ],
     providers: [
         ErrorInterceptorProvider,
+        AuthorizationInterceptorProvider,
         MY_CUSTOM_ERRORS_PROVIDER
     ],
     bootstrap: [AppComponent]

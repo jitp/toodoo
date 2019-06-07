@@ -3,20 +3,21 @@ import {TodoList} from '../models/todo-list';
 import {TodoListService} from '../services/todo-list.service';
 import {ActivatedRoute} from '@angular/router';
 import {
-    catchError,
-    delay,
-    delay,
-    delayWhen,
-    map,
-    mergeMap,
-    repeat,
-    skipUntil,
+    catchError, finalize,
     skipWhile,
     switchMap,
     takeUntil
 } from 'rxjs/internal/operators';
-import {from, iif, interval, Observable, of, Subject, Subscription, throwError, timer} from 'rxjs';
+import {of, Subject, timer} from 'rxjs';
 import {isNullOrUndefined} from 'util';
+import {LoadingService} from '../services/loading.service';
+import {NotifierService} from 'angular-notifier';
+
+const strings = {
+    messages: {
+        deleteSucess: 'The list has been removed!'
+    }
+};
 
 @Component({
     selector: 'app-todo-list',
@@ -49,7 +50,9 @@ export class TodoListComponent implements OnInit, OnDestroy {
 
     constructor(
         protected todoListService: TodoListService,
-        protected route: ActivatedRoute
+        protected route: ActivatedRoute,
+        protected loadingService: LoadingService,
+        protected notifierService: NotifierService
     ) {
         this.hash = this.route.snapshot.paramMap.get('hash');
     }
@@ -90,6 +93,29 @@ export class TodoListComponent implements OnInit, OnDestroy {
                 this.todoList = todoList
             })
         ;
+    }
+
+    /**
+     * Delete TodoList.
+     *
+     * @param {string} hash
+     */
+    deleteTodoList(hash: string): void {
+
+        this.loadingService.start();
+
+        this.todoListService.deleteTodoList(hash)
+            .pipe(
+                finalize(
+                    () => this.loadingService.stop()
+                )
+            )
+            .subscribe(
+                () => {
+                    this.todoListService.goHome();
+                    this.notifierService.notify('success', strings.messages.deleteSucess);
+                }
+            )
     }
 
 }
