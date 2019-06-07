@@ -2,6 +2,7 @@
 
 namespace App\Http\Middleware;
 
+use App\Exceptions\TodoListException;
 use Closure;
 use Illuminate\Support\Facades\Auth;
 
@@ -32,10 +33,20 @@ class HashAuthenticate
             $todoList = $route->parameter('todolist');
 
             if ($participant = $todoList->getParticipantByHash($hash)) {
-                Auth::login($participant);
+                $token = Auth::login($participant);
+            } else {
+                throw new TodoListException(404, 'Participant not found');
             }
+
+        } else {
+            $token = Auth::tokenById(Auth::user()->getAuthIdentifier());
         }
 
-        return $next($request);
+        $response = $next($request);
+
+        //Set authorization token in response headers for later use in requests
+        $response->headers->set('Authorization', 'Bearer ' . $token);
+
+        return $response;
     }
 }

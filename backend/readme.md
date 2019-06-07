@@ -27,8 +27,9 @@ Make sure you have the following:
 4. Renamed the .env.example file to .env
 5. Configure your enviroment in .env file.
 6. Generate application key by running: `php artisan key:generate`
-7. Create a database and place configuration values requested in .env file.
-7. Run migrations: `php artisan migrate`
+7. Generate jwt secret key: `php artisan jwt:secret`
+8. Create a database and place configuration values requested in .env file.
+9. Run migrations: `php artisan migrate`
 
 #### Enviroment configuration
 
