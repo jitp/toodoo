@@ -60,6 +60,17 @@ export class TodoListService {
     }
 
     /**
+     * Invite new participant to TodoList.
+     *
+     * @param {string} hash
+     * @param {{participant: string}} participant
+     * @return {Observable<void>}
+     */
+    invite(hash: string, participant: {participant: string}): Observable<void> {
+        return this.http.post<void>(`${this.todoListsUrl}/${hash}/invite`, participant, this.httpOptions);
+    }
+
+    /**
      * Navigate to home page.
      *
      */

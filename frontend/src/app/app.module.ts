@@ -16,6 +16,7 @@ import { PageNotFoundComponent } from './components/page-not-found/page-not-foun
 import { TodoListComponent } from './todo-list/todo-list.component';
 import { SweetAlert2Module } from '@sweetalert2/ngx-sweetalert2';
 import {AuthorizationInterceptorProvider} from './interceptors/authorization.interceptor';
+import { InvitationComponent } from './components/invitation/invitation.component';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -64,7 +65,8 @@ const notifierDefaultOptions: NotifierOptions = {
         AppComponent,
         PageNotFoundComponent,
         HomeComponent,
-        TodoListComponent
+        TodoListComponent,
+        InvitationComponent
     ],
     imports: [
         BrowserModule,
