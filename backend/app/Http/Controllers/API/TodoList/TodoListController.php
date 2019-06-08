@@ -63,7 +63,7 @@ class TodoListController extends ApiController
      */
     public function show(TodoList $todoList)
     {
-        return (new TodoListResource($todoList));
+        return (new TodoListResource($todoList->load('items', 'participants')));
     }
 
     /**

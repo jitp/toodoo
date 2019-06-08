@@ -43,7 +43,10 @@ class TodoListItemController extends ApiController
     {
         $input = $request->validated();
 
-        return (new TodoListItemResource($this->todoListService->addItemToList($todoList, $input)->first()));
+        $todoListItem = $this->todoListService->addItemToList($todoList, $input)->first();
+
+        return (new TodoListItemResource($todoListItem->load(
+            'todoList.items', 'todoList.participants')));
     }
 
     /**
@@ -51,14 +54,15 @@ class TodoListItemController extends ApiController
      *
      * @param TodoList     $todoList
      * @param TodoListItem $todoListItem
-     * @return \Illuminate\Http\JsonResponse
+     * @return TodoListItemResource
      * @throws \Exception
      */
     public function destroy(TodoList $todoList, TodoListItem $todoListItem)
     {
         $this->todoListService->deleteTodoListItem($todoListItem);
 
-        return response()->json();
+        return (new TodoListItemResource($todoListItem->load(
+            'todoList.items', 'todoList.participants')));
     }
 
     /**
@@ -70,7 +74,11 @@ class TodoListItemController extends ApiController
      */
     public function toggleStatus(TodoList $todoList, TodoListItem $todoListItem)
     {
-        return (new TodoListItemResource($this->todoListService->toggleTodoItemListStatus($todoListItem)));
+        $todoListItem = $this->todoListService->toggleTodoItemListStatus($todoListItem);
+        //Load relation with TodoList
+        $todoListItem->load('todoList.items', 'todoList.participants');
+
+        return (new TodoListItemResource($todoListItem));
     }
 
     /**
@@ -85,6 +93,10 @@ class TodoListItemController extends ApiController
     {
         $input = $request->validated();
 
-        return (new TodoListItemResource($this->todoListService->changeTodoListItemDeadline($todoListItem, $input['deadline'] ?? null)));
+        $todoListItem = $this->todoListService->changeTodoListItemDeadline($todoListItem, $input['deadline'] ?? null);
+        //Load relation with TodoList
+        $todoListItem->load('todoList.items', 'todoList.participants');
+
+        return (new TodoListItemResource($todoListItem));
     }
 }

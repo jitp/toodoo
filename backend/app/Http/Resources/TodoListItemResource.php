@@ -26,6 +26,8 @@ class TodoListItemResource extends JsonResource
             'name' => $this->name,
             'user_id' => $this->user_id,
             'todo_list_id' => $this->todo_list_id,
+            'todo_list' => (new TodoListResource($this->whenLoaded('todoList'))),
+            'creator' => (new UserResource($this->whenLoaded('creator'))),
             'order' => $this->order,
             'status' => $this->status,
             'deadline' => (string) $this->deadline,
