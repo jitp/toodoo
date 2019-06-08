@@ -19,6 +19,7 @@ import {AuthorizationInterceptorProvider} from './interceptors/authorization.int
 import { InvitationComponent } from './components/invitation/invitation.component';
 import { CreateTodoListItemComponent } from './components/create-todo-list-item/create-todo-list-item.component';
 import { TodoListItemComponent } from './components/todo-list-item/todo-list-item.component';
+import { MyDatePickerModule } from 'mydatepicker';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -87,7 +88,8 @@ const notifierDefaultOptions: NotifierOptions = {
             customClass: 'modal-content',
             confirmButtonClass: 'btn btn-primary',
             cancelButtonClass: 'btn'
-        })
+        }),
+        MyDatePickerModule
     ],
     providers: [
         ErrorInterceptorProvider,

@@ -25,6 +25,7 @@
     "bootstrap": "^4.3.1",
     "core-js": "^2.5.4",
     "jquery": "^3.4.1",
+    "mydatepicker": "^2.6.6",
     "ng-bootstrap-form-validation": "^4.0.0",
     "ngx-loading": "^3.0.1",
     "ngx-sortable": "^1.0.1",

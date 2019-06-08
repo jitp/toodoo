@@ -117,6 +117,24 @@ export class TodoListService {
     }
 
     /**
+     * Change TodoListItem deadline.
+     *
+     * @param {string} hash
+     * @param {number} todoListItemId
+     * @param {string} deadline
+     * @return {Observable<TodoListItem>}
+     */
+    changeDeadline(hash: string, todoListItemId: number, deadline: string): Observable<TodoListItem> {
+        return this.http.put<{data:TodoListItem}>(`${this.todoListsUrl}/${hash}/items/${todoListItemId}/change-deadline`, {
+            deadline
+        }, this.httpOptions)
+            .pipe(
+                map((response: {data: TodoListItem}) => response.data)
+            )
+            ;
+    }
+
+    /**
      * Navigate to home page.
      *
      */

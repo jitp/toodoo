@@ -4,11 +4,14 @@ import {TodoListService} from '../../services/todo-list.service';
 import {NotifierService} from 'angular-notifier';
 import {finalize} from 'rxjs/internal/operators';
 import {TodoListItemStatusEnum} from '../../enums/todo-list-item-status-enum';
+import {IMyDpOptions} from 'mydatepicker';
+import {AbstractControl, FormBuilder} from '@angular/forms';
 
 const strings = {
     messages: {
         deleteSucess: 'The task has been removed!',
-        statusUpdateSuccess: 'Status changed!'
+        statusUpdateSuccess: 'Status changed!',
+        deadlineUpdateSuccess: 'Deadline changed!',
     }
 };
 
@@ -46,13 +49,33 @@ export class TodoListItemComponent implements OnInit {
      */
     @Output() deleted = new EventEmitter<TodoListItem>();
 
+    /**
+     * Configuration for mydatepicker.
+     *
+     * @type {{IMyDpOptions}}
+     */
+    myDatePickerOptions: IMyDpOptions = {
+        // other options...
+        showInputField: false,
+        showClearDateBtn: false,
+        ariaLabelOpenCalendar: 'Change deadline',
+    };
+
+    /**
+     * Deadline form control
+     */
+    deadlineFormControl: AbstractControl;
+
     constructor(
         protected todoListService: TodoListService,
-        protected notifierService: NotifierService
+        protected notifierService: NotifierService,
+        protected fb: FormBuilder
     ) {
     }
 
     ngOnInit() {
+        //Defining and setting default deadline on form control
+        this.deadlineFormControl = this.fb.control(this.deadline);
     }
 
     /**
@@ -84,6 +107,33 @@ export class TodoListItemComponent implements OnInit {
     }
 
     /**
+     * Get deadline formatted as for mydatetimepicker.
+     *
+     * @return {any}
+     */
+    get deadline(): any {
+        const date = this.item.deadline ? this.item.deadline : '';
+        const dateInstance = new Date(date);
+
+        return {
+            date: {
+                year: dateInstance.getFullYear(),
+                month: dateInstance.getMonth() + 1,
+                day: dateInstance.getDate()
+            }
+        }
+    }
+
+    /**
+     * Determine if TodoListItem is expired.
+     *
+     * @return {boolean}
+     */
+    get isExpired(): boolean {
+        return (this.item.deadline && (new Date(this.item.deadline)) < (new Date()));
+    }
+
+    /**
      * Toggle the status of the item
      */
     changeStatus(): void {
@@ -100,6 +150,30 @@ export class TodoListItemComponent implements OnInit {
                     this.notifierService.notify('success', strings.messages.statusUpdateSuccess);
                 }
             )
+    }
+
+    /**
+     * Change deadline of the item.
+     *
+     * @param $event
+     */
+    onDateChanged($event: any) {
+
+        this.isSubmitting = true;
+
+        const date = new Date($event.date.year, $event.date.month - 1, $event.date.day);
+
+        this.todoListService.changeDeadline(this.hash, this.item.id, date.toUTCString())
+            .pipe(
+                finalize(() => this.isSubmitting = false),
+            )
+            .subscribe(
+                (todoListItem: TodoListItem) => {
+                    this.item = todoListItem;
+                    this.notifierService.notify('success', strings.messages.deadlineUpdateSuccess);
+                }
+            )
+        ;
     }
 
 }

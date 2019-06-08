@@ -1,7 +1,8 @@
 <li
     class="list-group-item d-flex flex-row align-items-center"
-    [ngClass]="{'bg-light': isDone}">
+    [ngClass]="{'bg-light': (isDone && !isExpired), 'border-danger shadow': isExpired}">
 
+    <!--Change status button-->
     <div class="item-done flex-grow-0">
         <button title="Mark as Done/Undone"
                 (click)="changeStatus()"
@@ -11,25 +12,49 @@
             <i *ngIf="!isDone" class="fa fa-square-o fa-fw align-middle"></i>
         </button>
     </div>
+
+    <!--Item text-->
     <div class="item-content flex-grow-1 mx-2"
          [ngClass]="{'text-muted': isDone}">
-        <ng-container *ngIf="isDone">
-            <span><del>{{ item.name }}</del></span>
-        </ng-container>
-        <ng-container *ngIf="!isDone">
-            {{ item.name }}
-        </ng-container>
+        <div *ngIf="item.deadline">
+            <span *ngIf="!isExpired" class="small">Expires on: {{item.deadline | date}}</span>
+            <span *ngIf="isExpired" class="small">Expired on: {{item.deadline | date}}</span>
+        </div>
+        <div>
+            <ng-container *ngIf="isDone">
+                <span><del>{{ item.name }}</del></span>
+            </ng-container>
+            <ng-container *ngIf="!isDone">
+                {{ item.name }}
+            </ng-container>
+        </div>
     </div>
+
+    <!--Loading spinner for requests-->
     <div class="flex-grow-0"
          [ngClass]="{'d-none': !isSubmitting}">
         <i class="fa fa-spinner fa-spin ml-1 align-middle"></i>
     </div>
+
+    <!--Action buttons-->
     <div class="action-buttons flex-grow-0"
          [ngClass]="{'d-none': isSubmitting}">
-        <button title="Delete task"
-                (click)="delete()"
-                class="btn btn-sm btn-danger rounded-circle">
-            <i class="fa fa-trash"></i>
-        </button>
+        <div class="d-flex flex-row align-items-center">
+            <!--Datepicker-->
+            <div class="mt-2" title="Change deadline">
+                <my-date-picker
+                        [options]="myDatePickerOptions"
+                        [formControl]="deadlineFormControl"
+                        (dateChanged)="onDateChanged($event)">
+                </my-date-picker>
+            </div>
+
+            <!--Delete item-->
+            <button title="Delete task"
+                    (click)="delete()"
+                    class="btn btn-sm btn-danger rounded-circle ml-2">
+                <i class="fa fa-trash"></i>
+            </button>
+        </div>
     </div>
 </li>
