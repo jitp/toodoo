@@ -18,6 +18,7 @@ import { SweetAlert2Module } from '@sweetalert2/ngx-sweetalert2';
 import {AuthorizationInterceptorProvider} from './interceptors/authorization.interceptor';
 import { InvitationComponent } from './components/invitation/invitation.component';
 import { CreateTodoListItemComponent } from './components/create-todo-list-item/create-todo-list-item.component';
+import { TodoListItemComponent } from './components/todo-list-item/todo-list-item.component';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -68,7 +69,8 @@ const notifierDefaultOptions: NotifierOptions = {
         HomeComponent,
         TodoListComponent,
         InvitationComponent,
-        CreateTodoListItemComponent
+        CreateTodoListItemComponent,
+        TodoListItemComponent
     ],
     imports: [
         BrowserModule,

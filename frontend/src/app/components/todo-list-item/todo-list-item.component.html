@@ -1,0 +1,35 @@
+<li
+    class="list-group-item d-flex flex-row align-items-center"
+    [ngClass]="{'bg-light': isDone}">
+
+    <div class="item-done flex-grow-0">
+        <button title="Mark as Done/Undone"
+                (click)="changeStatus()"
+                [disabled]="isSubmitting"
+                class="btn btn-sm rounded-circle">
+            <i *ngIf="isDone" class="fa fa-check-square-o fa-fw align-middle"></i>
+            <i *ngIf="!isDone" class="fa fa-square-o fa-fw align-middle"></i>
+        </button>
+    </div>
+    <div class="item-content flex-grow-1 mx-2"
+         [ngClass]="{'text-muted': isDone}">
+        <ng-container *ngIf="isDone">
+            <span><del>{{ item.name }}</del></span>
+        </ng-container>
+        <ng-container *ngIf="!isDone">
+            {{ item.name }}
+        </ng-container>
+    </div>
+    <div class="flex-grow-0"
+         [ngClass]="{'d-none': !isSubmitting}">
+        <i class="fa fa-spinner fa-spin ml-1 align-middle"></i>
+    </div>
+    <div class="action-buttons flex-grow-0"
+         [ngClass]="{'d-none': isSubmitting}">
+        <button title="Delete task"
+                (click)="delete()"
+                class="btn btn-sm btn-danger rounded-circle">
+            <i class="fa fa-trash"></i>
+        </button>
+    </div>
+</li>

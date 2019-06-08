@@ -28,25 +28,31 @@
 
         <div class="card-body">
             <div class="row">
-                <div class="col col-md-8">
+                <!--Tasks-->
+                <div class="col-12 col-md-8">
                     <h2>Tasks</h2>
                     <hr class="py-2">
 
+                    <!--Create new taks form-->
                     <app-create-todo-list-item (created)="onTodoListItemCreated($event)"
                                                 [hash]="hash">
                     </app-create-todo-list-item>
 
-                    <ul class="list-group">
-                        <li *ngFor="let item of todoList?.items"
-                            class="list-group-item">
-                            {{ item.name }}
-                        </li>
+                    <!--List of tasks-->
+                    <ul #items
+                        class="list-group">
+                        <app-todo-list-item *ngFor="let item of todoListItems"
+                                            [item]="item"
+                                            [hash]="hash"
+                                            (deleted)="onTodoListItemDeleted($event)"
+                                            class="mb-2">
+                        </app-todo-list-item>
                     </ul>
 
                 </div>
 
                 <!--Left column-->
-                <div class="col col-md-4">
+                <div class="col-12 col-md-4">
                     <!--Invite new participants-->
                     <div class="card border-0 p-2">
                         <div class="card-body">

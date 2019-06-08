@@ -1,9 +1,10 @@
-import {Component, OnDestroy, OnInit} from '@angular/core';
+import {Component, ElementRef, OnDestroy, OnInit, ViewChild} from '@angular/core';
 import {TodoList} from '../../models/todo-list';
 import {TodoListService} from '../../services/todo-list.service';
 import {ActivatedRoute} from '@angular/router';
 import {
-    catchError, finalize,
+    catchError,
+    finalize,
     skipWhile,
     switchMap,
     takeUntil
@@ -16,7 +17,7 @@ import {TodoListItem} from '../../models/todo-list-item';
 
 const strings = {
     messages: {
-        deleteSucess: 'The list has been removed!'
+        deleteSucess: 'The list has been removed!',
     }
 };
 
@@ -120,12 +121,29 @@ export class TodoListComponent implements OnInit, OnDestroy {
     }
 
     /**
+     * Get TodoListItems of current list.
+     *
+     * @return {TodoListItem[]}
+     */
+    get todoListItems(): TodoListItem[] {
+        return this.todoList ? this.todoList.items : [];
+    }
+
+    /**
      * Listen TodoListItem creation and update TodoList.
      *
      * @param {TodoList} $event
      */
     onTodoListItemCreated($event: TodoListItem): void {
-        this.todoList = $event.todo_list;
+        this.todoListItems.push($event);
     }
 
+    /**
+     * Listen TodoListItem deleted and update TodoList.
+     *
+     * @param {TodoListItem} $event
+     */
+    onTodoListItemDeleted($event: TodoListItem): void {
+        this.todoList.items = this.todoList.items.filter((item => item.id !== $event.id));
+    }
 }

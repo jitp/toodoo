@@ -87,6 +87,36 @@ export class TodoListService {
     }
 
     /**
+     * Delete a TodoListItem.
+     *
+     * @param {string} hash
+     * @param {number} todoListItemId
+     * @return {Observable<TodoListItem>}
+     */
+    deleteTodoListItem(hash: string, todoListItemId: number): Observable<TodoListItem> {
+        return this.http.delete<{data: TodoListItem}>(`${this.todoListsUrl}/${hash}/items/${todoListItemId}`, this.httpOptions)
+            .pipe(
+                map((response: {data: TodoListItem}) => response.data)
+            )
+            ;
+    }
+
+    /**
+     * Toggle TodoListItem status.
+     *
+     * @param {string} hash
+     * @param {number} todoListItemId
+     * @return {Observable<TodoListItem>}
+     */
+    toggleTodoListItemStatus(hash: string, todoListItemId: number): Observable<TodoListItem> {
+        return this.http.put<{data: TodoListItem}>(`${this.todoListsUrl}/${hash}/items/${todoListItemId}/toggle-status`, {}, this.httpOptions)
+            .pipe(
+                map((response: {data: TodoListItem}) => response.data)
+            )
+            ;
+    }
+
+    /**
      * Navigate to home page.
      *
      */

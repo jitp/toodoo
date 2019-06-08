@@ -34,7 +34,9 @@ export class AuthorizationInterceptor implements HttpInterceptor{
             .pipe(
                 tap((event) => {
                     if (event instanceof HttpResponse) {
-                        this.todoListService.setAuthorizationToken(event.headers.get('authorization'));
+                        if (event.headers.has('authorization')) {
+                            this.todoListService.setAuthorizationToken(event.headers.get('authorization'));
+                        }
                     }
                 })
             );
