@@ -1,4 +1,4 @@
-
+import {TodoList} from './todo-list';
 
 /**
  * Represent a TodoListItem model
@@ -8,5 +8,6 @@ export class TodoListItem {
     name = '';
     order = 0;
     status = '';
-    deadline = ''
+    deadline = '';
+    todo_list: TodoList;
 }

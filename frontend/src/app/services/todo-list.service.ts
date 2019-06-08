@@ -5,6 +5,7 @@ import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
 import {map} from 'rxjs/internal/operators';
 import {Router} from '@angular/router';
+import {TodoListItem} from '../models/todo-list-item';
 
 @Injectable({
     providedIn: 'root'
@@ -68,6 +69,21 @@ export class TodoListService {
      */
     invite(hash: string, participant: {participant: string}): Observable<void> {
         return this.http.post<void>(`${this.todoListsUrl}/${hash}/invite`, participant, this.httpOptions);
+    }
+
+    /**
+     * Create new TodoListItem
+     *
+     * @param {string} hash
+     * @param {{name: string}} item
+     * @return {Observable<TodoListItem>}
+     */
+    createTodoListItem(hash: string, item: {name: string}): Observable<TodoListItem> {
+        return this.http.post<{data: TodoListItem}>(`${this.todoListsUrl}/${hash}/items`, item, this.httpOptions)
+            .pipe(
+                map((response: {data: TodoListItem}) => response.data)
+            )
+            ;
     }
 
     /**

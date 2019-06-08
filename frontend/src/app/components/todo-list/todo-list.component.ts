@@ -12,6 +12,7 @@ import {of, Subject, timer} from 'rxjs';
 import {isNullOrUndefined} from 'util';
 import {LoadingService} from '../../services/loading.service';
 import {NotifierService} from 'angular-notifier';
+import {TodoListItem} from '../../models/todo-list-item';
 
 const strings = {
     messages: {
@@ -116,6 +117,15 @@ export class TodoListComponent implements OnInit, OnDestroy {
                     this.notifierService.notify('success', strings.messages.deleteSucess);
                 }
             )
+    }
+
+    /**
+     * Listen TodoListItem creation and update TodoList.
+     *
+     * @param {TodoList} $event
+     */
+    onTodoListItemCreated($event: TodoListItem): void {
+        this.todoList = $event.todo_list;
     }
 
 }
