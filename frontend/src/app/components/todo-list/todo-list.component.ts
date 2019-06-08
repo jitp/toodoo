@@ -1,6 +1,6 @@
 import {Component, OnDestroy, OnInit} from '@angular/core';
-import {TodoList} from '../models/todo-list';
-import {TodoListService} from '../services/todo-list.service';
+import {TodoList} from '../../models/todo-list';
+import {TodoListService} from '../../services/todo-list.service';
 import {ActivatedRoute} from '@angular/router';
 import {
     catchError, finalize,
@@ -10,7 +10,7 @@ import {
 } from 'rxjs/internal/operators';
 import {of, Subject, timer} from 'rxjs';
 import {isNullOrUndefined} from 'util';
-import {LoadingService} from '../services/loading.service';
+import {LoadingService} from '../../services/loading.service';
 import {NotifierService} from 'angular-notifier';
 
 const strings = {

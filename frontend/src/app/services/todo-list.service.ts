@@ -1,5 +1,5 @@
 import {Injectable} from '@angular/core';
-import {HttpClient, HttpHeaders, HttpRequest} from '@angular/common/http';
+import {HttpClient, HttpHeaders} from '@angular/common/http';
 import {TodoList} from '../models/todo-list';
 import {Observable} from 'rxjs';
 import {environment} from '../../environments/environment';
@@ -56,7 +56,7 @@ export class TodoListService {
      * @return {Observable<void>}
      */
     deleteTodoList(hash: string): Observable<void> {
-        return this.http.delete(`${this.todoListsUrl}/${hash}`, this.httpOptions);
+        return this.http.delete<void>(`${this.todoListsUrl}/${hash}`, this.httpOptions);
     }
 
     /**

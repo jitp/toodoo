@@ -2,7 +2,7 @@ import {BrowserModule} from '@angular/platform-browser';
 import {NgModule} from '@angular/core';
 
 import {AppComponent} from './app.component';
-import {HomeComponent} from './home/home.component';
+import {HomeComponent} from './components/home/home.component';
 import {AppRoutingModule} from './app-routing.module';
 import {ReactiveFormsModule} from '@angular/forms';
 import {RxReactiveFormsModule} from '@rxweb/reactive-form-validators';
@@ -13,7 +13,7 @@ import {NotifierModule, NotifierOptions} from 'angular-notifier';
 import {ErrorInterceptorProvider} from './interceptors/error.interceptor';
 import {MY_CUSTOM_ERRORS_PROVIDER} from './utils/custom-errors';
 import { PageNotFoundComponent } from './components/page-not-found/page-not-found.component';
-import { TodoListComponent } from './todo-list/todo-list.component';
+import { TodoListComponent } from './components/todo-list/todo-list.component';
 import { SweetAlert2Module } from '@sweetalert2/ngx-sweetalert2';
 import {AuthorizationInterceptorProvider} from './interceptors/authorization.interceptor';
 import { InvitationComponent } from './components/invitation/invitation.component';

@@ -1,14 +1,14 @@
 import {Component, OnInit} from '@angular/core';
 import {FormArray, FormBuilder, FormGroup, Validators} from '@angular/forms';
 import {RxwebValidators} from '@rxweb/reactive-form-validators';
-import {Participant} from '../models/participant';
-import {TodoList} from '../models/todo-list';
-import {TodoListService} from '../services/todo-list.service';
-import {LoadingService} from '../services/loading.service';
+import {Participant} from '../../models/participant';
+import {TodoList} from '../../models/todo-list';
+import {TodoListService} from '../../services/todo-list.service';
+import {LoadingService} from '../../services/loading.service';
 import {finalize} from 'rxjs/internal/operators';
 import {NotifierService} from 'angular-notifier';
 import {HttpErrorResponse} from '@angular/common/http';
-import {render422FormFieldErrors} from '../utils/helpers';
+import {render422FormFieldErrors} from '../../utils/helpers';
 
 @Component({
     selector: 'app-home',
