@@ -19,6 +19,14 @@
         <div *ngIf="item.deadline">
             <span *ngIf="!isExpired" class="small">Expires on: {{item.deadline | date}}</span>
             <span *ngIf="isExpired" class="small">Expired on: {{item.deadline | date}}</span>
+            <button type="button"
+                    class="btn btn-sm ml-2 rounded-circle"
+                    title="Unset deadline"
+                    (click)="onDateChanged()"
+                    [disabled]="isSubmitting"
+                    aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+            </button>
         </div>
         <div>
             <ng-container *ngIf="isDone">

@@ -6,6 +6,7 @@ import {finalize} from 'rxjs/internal/operators';
 import {TodoListItemStatusEnum} from '../../enums/todo-list-item-status-enum';
 import {IMyDpOptions} from 'mydatepicker';
 import {AbstractControl, FormBuilder} from '@angular/forms';
+import {isNullOrUndefined} from 'util';
 
 const strings = {
     messages: {
@@ -112,7 +113,12 @@ export class TodoListItemComponent implements OnInit {
      * @return {any}
      */
     get deadline(): any {
-        const date = this.item.deadline ? this.item.deadline : '';
+        const date = this.item.deadline ? this.item.deadline : null;
+
+        if (isNullOrUndefined(date)) {
+            return date;
+        }
+
         const dateInstance = new Date(date);
 
         return {
@@ -161,9 +167,13 @@ export class TodoListItemComponent implements OnInit {
 
         this.isSubmitting = true;
 
-        const date = new Date($event.date.year, $event.date.month - 1, $event.date.day);
+        let date = '';
 
-        this.todoListService.changeDeadline(this.hash, this.item.id, date.toUTCString())
+        if ($event) {
+            date = (new Date(Date.UTC($event.date.year, $event.date.month - 1, $event.date.day))).toISOString();
+        }
+
+        this.todoListService.changeDeadline(this.hash, this.item.id, date)
             .pipe(
                 finalize(() => this.isSubmitting = false),
             )
