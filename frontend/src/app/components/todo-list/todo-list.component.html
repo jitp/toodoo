@@ -49,6 +49,7 @@
                                             [item]="item"
                                             [hash]="hash"
                                             (deleted)="onTodoListItemDeleted($event)"
+                                            (changing)="onTodoListItemChanging($event)"
                                             class="mb-2">
                         </app-todo-list-item>
                     </ul>

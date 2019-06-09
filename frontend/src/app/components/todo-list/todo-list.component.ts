@@ -9,7 +9,7 @@ import {
     switchMap,
     takeUntil
 } from 'rxjs/internal/operators';
-import {of, Subject, timer} from 'rxjs';
+import {EMPTY, of, Subject, timer} from 'rxjs';
 import {isNullOrUndefined} from 'util';
 import {LoadingService} from '../../services/loading.service';
 import {NotifierService} from 'angular-notifier';
@@ -52,6 +52,16 @@ export class TodoListComponent implements OnInit, OnDestroy {
      */
     protected timerUnsubscribe: Subject<void> = new Subject();
 
+    /**
+     * Pauser to pause/resume asking for TodoList updates.
+     *
+     * This is intended to avoid missbehaviour when a user action
+     * request meets at the same time with an automatically update request
+     *
+     * @type {boolean}
+     */
+    protected pauser = false;
+
     constructor(
         protected todoListService: TodoListService,
         protected route: ActivatedRoute,
@@ -82,14 +92,19 @@ export class TodoListComponent implements OnInit, OnDestroy {
             .pipe(
                 takeUntil(this.timerUnsubscribe),
                 switchMap(
-                    () => this.todoListService.getTodoList(this.hash)
+                    () => {
+                        if (this.pauser) {
+                            return EMPTY;
+                        }
+
+                        return this.todoListService.getTodoList(this.hash)
                         .pipe(
                             catchError(
                                 (error) => {
                                     return of(null)
                                 }
                             )
-                        )
+                        )}
                 ),
                 skipWhile((value => isNullOrUndefined(value)))
             )
@@ -107,11 +122,15 @@ export class TodoListComponent implements OnInit, OnDestroy {
     deleteTodoList(hash: string): void {
 
         this.loadingService.start();
+        this.pauser = true;
 
         this.todoListService.deleteTodoList(hash)
             .pipe(
                 finalize(
-                    () => this.loadingService.stop()
+                    () => {
+                        this.loadingService.stop();
+                        this.pauser = false;
+                    }
                 )
             )
             .subscribe(
@@ -147,6 +166,7 @@ export class TodoListComponent implements OnInit, OnDestroy {
      */
     onTodoListItemDeleted($event: TodoListItem): void {
         this.todoList.items = this.todoList.items.filter((item => item.id !== $event.id));
+        this.pauser = false;
     }
 
     /**
@@ -155,6 +175,7 @@ export class TodoListComponent implements OnInit, OnDestroy {
      * @param {CdkDragDrop<string[]>} $event
      */
     onDrop($event: CdkDragDrop<string[]>) {
+        this.pauser = true;
 
         // Set new order of elements
         moveItemInArray(this.todoList.items, $event.previousIndex, $event.currentIndex);
@@ -171,7 +192,10 @@ export class TodoListComponent implements OnInit, OnDestroy {
         this.todoListService.changeOrder(this.hash, newOrder)
             .pipe(
                 finalize(
-                    () => this.loadingService.stop()
+                    () => {
+                        this.loadingService.stop();
+                        this.pauser = false;
+                    }
                 )
             )
             .subscribe(
@@ -184,5 +208,14 @@ export class TodoListComponent implements OnInit, OnDestroy {
                     moveItemInArray(this.todoList.items, $event.currentIndex, $event.previousIndex);
                 }
             )
+    }
+
+    /**
+     * On TodoListItem changing prevent updating TodoList automatically.
+     *
+     * @param {boolean} $event
+     */
+    onTodoListItemChanging($event: boolean): void {
+        this.pauser = $event;
     }
 }

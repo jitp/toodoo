@@ -51,6 +51,13 @@ export class TodoListItemComponent implements OnInit {
     @Output() deleted = new EventEmitter<TodoListItem>();
 
     /**
+     * Notify when a changing is being persisted.
+     *
+     * @type {EventEmitter<boolean>}
+     */
+    @Output() changing = new EventEmitter<boolean>();
+
+    /**
      * Configuration for mydatepicker.
      *
      * @type {{IMyDpOptions}}
@@ -85,10 +92,14 @@ export class TodoListItemComponent implements OnInit {
     delete(): void {
 
         this.isSubmitting = true;
+        this.changing.emit(true);
 
         this.todoListService.deleteTodoListItem(this.hash, this.item.id)
             .pipe(
-                finalize(() => this.isSubmitting = false),
+                finalize(() => {
+                    this.isSubmitting = false;
+                    this.changing.emit(false);
+                }),
             )
             .subscribe(
                 (todoListItem: TodoListItem) => {
@@ -145,10 +156,14 @@ export class TodoListItemComponent implements OnInit {
     changeStatus(): void {
 
         this.isSubmitting = true;
+        this.changing.emit(true);
 
         this.todoListService.toggleTodoListItemStatus(this.hash, this.item.id)
             .pipe(
-                finalize(() => this.isSubmitting = false),
+                finalize(() => {
+                    this.isSubmitting = false;
+                    this.changing.emit(false);
+                }),
             )
             .subscribe(
                 (todoListItem: TodoListItem) => {
@@ -166,6 +181,7 @@ export class TodoListItemComponent implements OnInit {
     onDateChanged($event: any) {
 
         this.isSubmitting = true;
+        this.changing.emit(true);
 
         let date = '';
 
@@ -175,7 +191,10 @@ export class TodoListItemComponent implements OnInit {
 
         this.todoListService.changeDeadline(this.hash, this.item.id, date)
             .pipe(
-                finalize(() => this.isSubmitting = false),
+                finalize(() => {
+                    this.isSubmitting = false;
+                    this.changing.emit(false);
+                }),
             )
             .subscribe(
                 (todoListItem: TodoListItem) => {
