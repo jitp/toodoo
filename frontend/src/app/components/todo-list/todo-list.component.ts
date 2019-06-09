@@ -62,6 +62,13 @@ export class TodoListComponent implements OnInit, OnDestroy {
      */
     protected pauser = false;
 
+    /**
+     * Flag to show loading when component starts.
+     *
+     * @type {boolean}
+     */
+    protected firstTimeLoading = true;
+
     constructor(
         protected todoListService: TodoListService,
         protected route: ActivatedRoute,
@@ -88,6 +95,10 @@ export class TodoListComponent implements OnInit, OnDestroy {
      */
     startRequestingTodoListUpdates(): void {
 
+        if (this.firstTimeLoading) {
+            this.loadingService.start();
+        }
+
         timer(0, this.delayTimeBetweenRequests)
             .pipe(
                 takeUntil(this.timerUnsubscribe),
@@ -109,6 +120,12 @@ export class TodoListComponent implements OnInit, OnDestroy {
                 skipWhile((value => isNullOrUndefined(value)))
             )
             .subscribe(todoList => {
+
+                if (this.firstTimeLoading) {
+                    this.loadingService.stop();
+                    this.firstTimeLoading = false;
+                }
+
                 this.todoList = todoList
             })
         ;
