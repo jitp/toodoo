@@ -69,6 +69,10 @@ class TodoListItem extends Model implements Sortable
      */
     public function isExpired()
     {
+        if (is_null($this->deadline)) {
+            return false;
+        }
+
         return $this->deadline < Carbon::now();
     }
 

@@ -52,6 +52,29 @@ class TodoListItemTest extends TestCase
     }
 
     /**
+     * Test a TodoListItem is not expired when deadline is null
+     *
+     * @return void
+     */
+    public function testIsNotExpiredWhenNoDeadlineIsSet()
+    {
+        $todoList = factory(TodoList::class)->create();
+        $user = factory(User::class)->create();
+
+        $todoList->addParticipants($user);
+
+        $todoListItem = factory(TodoListItem::class)->create([
+            'todo_list_id' => $todoList->id,
+            'user_id' => $user->id,
+            'deadline' => null
+        ]);
+
+        $this->assertNull($todoListItem->deadline);
+
+        $this->assertFalse($todoListItem->isExpired());
+    }
+
+    /**
      * Test a TodoListItem is not expired.
      *
      * @return TodoListItem
