@@ -1,10 +1,10 @@
-<section class="jumbotron text-center">
+<section class="jumbotron text-center bg-primary">
     <div class="container">
-        <h1 class="jumbotron-heading">Welcome to TOODOO!</h1>
-        <p class="lead text-muted">
+        <h1 class="jumbotron-heading text-white">Welcome to TOODOO!</h1>
+        <p class="lead text-white">
             An easy to use tool for organizing your todo lists! Best part is you don't have to be all alone, you can COLLABORATE!
         </p>
-        <p>
+        <p class="text-white">
             Invite your friends, collegues and family to start orginizing your activities!
         </p>
     </div>
@@ -13,7 +13,7 @@
 <div class="container">
     <div class="row">
         <div class="col">
-            <h4 class="mb-3 text-center">Create your TOODOO list</h4>
+            <h4 class="mb-3 text-center text-primary">Create your TOODOO list</h4>
 
             <form [formGroup]="todoListForm" class="needs-validation" novalidate="" (validSubmit)="onSubmit()">
                 <!--TodoList Name-->
@@ -39,12 +39,12 @@
                 <div formArrayName="participants" class="well well-lg">
                     <h5
                         *ngIf="participants.controls.length"
-                        class="mb-3">
+                        class="mb-3 text-primary">
                         Excellent! You will have some help.
                     </h5>
                     <h5
                         *ngIf="!participants.controls.length"
-                        class="mb-3">
+                        class="mb-3 text-primary">
                         Perhaps some participants?
                     </h5>
 
