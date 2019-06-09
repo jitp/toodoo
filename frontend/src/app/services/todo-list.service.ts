@@ -135,6 +135,21 @@ export class TodoListService {
     }
 
     /**
+     * Change order of TodoListItems.
+     *
+     * @param {string} hash
+     * @param {number[]} order
+     * @return {Observable<TodoList>}
+     */
+    changeOrder(hash: string, order: number[]): Observable<TodoList> {
+        return this.http.put<{data:TodoList}>(`${this.todoListsUrl}/${hash}/change-items-order`, {order}, this.httpOptions)
+            .pipe(
+                map((response: {data: TodoList}) => response.data)
+            )
+            ;
+    }
+
+    /**
      * Navigate to home page.
      *
      */

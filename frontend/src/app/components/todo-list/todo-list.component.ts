@@ -14,10 +14,12 @@ import {isNullOrUndefined} from 'util';
 import {LoadingService} from '../../services/loading.service';
 import {NotifierService} from 'angular-notifier';
 import {TodoListItem} from '../../models/todo-list-item';
+import {CdkDragDrop, moveItemInArray} from '@angular/cdk/drag-drop';
 
 const strings = {
     messages: {
         deleteSucess: 'The list has been removed!',
+        orderSuccess: 'Tasks ordered!'
     }
 };
 
@@ -145,5 +147,42 @@ export class TodoListComponent implements OnInit, OnDestroy {
      */
     onTodoListItemDeleted($event: TodoListItem): void {
         this.todoList.items = this.todoList.items.filter((item => item.id !== $event.id));
+    }
+
+    /**
+     * Listen to drag and drop on TodoListItems and updates the order.
+     *
+     * @param {CdkDragDrop<string[]>} $event
+     */
+    onDrop($event: CdkDragDrop<string[]>) {
+
+        // Set new order of elements
+        moveItemInArray(this.todoList.items, $event.previousIndex, $event.currentIndex);
+
+        // Grab de new order info
+        const newOrder = [];
+        this.todoListItems.forEach((item: TodoListItem) => {
+            newOrder.push(item.id);
+        });
+
+        this.loadingService.start();
+
+        // Persist new order in db
+        this.todoListService.changeOrder(this.hash, newOrder)
+            .pipe(
+                finalize(
+                    () => this.loadingService.stop()
+                )
+            )
+            .subscribe(
+                (todoList: TodoList) => {
+                    this.todoList = todoList;
+                    this.notifierService.notify('success', strings.messages.orderSuccess);
+                },
+                () => {
+                    //if some error occurred return order to previous state
+                    moveItemInArray(this.todoList.items, $event.currentIndex, $event.previousIndex);
+                }
+            )
     }
 }

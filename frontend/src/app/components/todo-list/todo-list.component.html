@@ -40,8 +40,12 @@
 
                     <!--List of tasks-->
                     <ul #items
+                        cdkDropList
+                        [cdkDropListData]="todoListItems"
+                        (cdkDropListDropped)="onDrop($event)"
                         class="list-group">
                         <app-todo-list-item *ngFor="let item of todoListItems"
+                                            cdkDrag
                                             [item]="item"
                                             [hash]="hash"
                                             (deleted)="onTodoListItemDeleted($event)"

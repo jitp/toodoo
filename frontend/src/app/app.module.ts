@@ -20,6 +20,7 @@ import { InvitationComponent } from './components/invitation/invitation.componen
 import { CreateTodoListItemComponent } from './components/create-todo-list-item/create-todo-list-item.component';
 import { TodoListItemComponent } from './components/todo-list-item/todo-list-item.component';
 import { MyDatePickerModule } from 'mydatepicker';
+import {DragDropModule} from '@angular/cdk/drag-drop';
 
 const notifierDefaultOptions: NotifierOptions = {
     position: {
@@ -89,7 +90,8 @@ const notifierDefaultOptions: NotifierOptions = {
             confirmButtonClass: 'btn btn-primary',
             cancelButtonClass: 'btn'
         }),
-        MyDatePickerModule
+        MyDatePickerModule,
+        DragDropModule
     ],
     providers: [
         ErrorInterceptorProvider,
