@@ -6,7 +6,7 @@
     <div class="item-done flex-grow-0">
         <button title="Mark as Done/Undone"
                 (click)="changeStatus()"
-                [disabled]="isSubmitting"
+                [disabled]="isSubmitting || isExpired"
                 class="btn btn-sm rounded-circle">
             <i *ngIf="isDone" class="fa fa-check-square-o fa-fw align-middle"></i>
             <i *ngIf="!isDone" class="fa fa-square-o fa-fw align-middle"></i>
