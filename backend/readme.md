@@ -56,6 +56,12 @@ MAIL_ENCRYPTION=null
 ```
 Fill those out with your current email solution.
 
+Place frontend url in:
+
+```
+FRONTEND_URL=http://localhost:4200
+```
+
 #### Web server configuration
 
 ##### Apache

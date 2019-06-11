@@ -5,7 +5,7 @@ Hello {{ $participant->name }}!
 
 {{ $inviting->name }} has invited you to collaborate with him in "{{ $todoList->name }}" todo list. If you agreed to, you can click the button
 
-@component('mail::button', ['url' => '/todo-list/' . $participant->participant->hash])
+@component('mail::button', ['url' => env('FRONTEND_URL', '') . '/todo-list/' . $participant->participant->hash])
 Collaborate!
 @endcomponent
 

@@ -7,7 +7,7 @@ We are glad you have decided to join us! Have the best on Toodoo collaborating!
 
 You can access your Todo List clicking the bellow button.
 
-@component('mail::button', ['url' => '/todo-list/' . $participant->participant->hash])
+@component('mail::button', ['url' => env('FRONTEND_URL', '') . '/todo-list/' . $participant->participant->hash])
 Collaborate!
 @endcomponent
 
